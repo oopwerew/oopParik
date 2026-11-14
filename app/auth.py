@@ -38,8 +38,8 @@ class AuthService:
             raise AuthError("Пароль — минимум 4 символа")
         if self.users.find_by_login(login):
             raise AuthError("Этот логин уже занят")
-        user_id = self.users.create(full_name, phone, login, self.hasher.hash(password))
-        return User(user_id, full_name, phone, login)
+        user_id = self.users.create(full_name, phone, login, self.hasher.hash(password), points=0)
+        return User(user_id, full_name, phone, login, points=0)
 
     def login(self, login: str, password: str) -> User:
         row = self.users.find_by_login(login.strip())
@@ -55,4 +55,5 @@ class AuthService:
                     self.users.update_hash(row["id"], self.hasher.hash(password))
         if not valid:
             raise AuthError("Неверный логин или пароль")
-        return User(row["id"], row["full_name"], row["phone"], row["login"])
+        points = int(row.get("points") or 0)
+        return User(row["id"], row["full_name"], row["phone"], row["login"], points=points)

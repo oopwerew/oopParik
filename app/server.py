@@ -231,6 +231,28 @@ def create_app(config: Config = None) -> Flask:
         user_id = data.get("userId")
         user_id = int(user_id) if user_id else None
 
+        # Расчет начисления и списания бонусных баллов (кешбэк 5%)
+        points_used = 0
+        points_earned = 0
+        final_price = service.price
+        new_balance = 0
+
+        if user_id:
+            user_balance = users_repo.get_points(user_id)
+            use_points = bool(data.get("usePoints"))
+            requested_points = int(data.get("pointsToUse", 0)) if use_points else 0
+            if use_points and requested_points <= 0:
+                requested_points = user_balance
+
+            if requested_points > 0:
+                points_used = min(user_balance, int(service.price), requested_points)
+                final_price = max(0.0, service.price - points_used)
+
+            # Начисляем 5% от итоговой суммы (минимум 10 баллов)
+            points_earned = max(10, int(final_price * 0.05))
+            delta = points_earned - points_used
+            new_balance = users_repo.add_points(user_id, delta)
+
         try:
             booking = bookings_repo.create(
                 user_id=user_id,
@@ -240,14 +262,42 @@ def create_app(config: Config = None) -> Flask:
                 master=master,
                 date=date_val,
                 time=time_val,
+                price=final_price,
+                points_earned=points_earned,
+                points_used=points_used,
             )
-            return jsonify({"ok": True, "booking": booking.to_dict()}), 201
+            return jsonify({
+                "ok": True,
+                "booking": booking.to_dict(),
+                "pointsEarned": points_earned,
+                "pointsUsed": points_used,
+                "userPoints": new_balance,
+            }), 201
         except Exception as err:
             return jsonify({"ok": False, "error": f"Ошибка создания записи: {err}"}), 500
+
+    @app.route("/api/user/points", methods=["GET"])
+    def get_user_points():
+        user_id = request.args.get("userId", type=int) or session.get("user_id")
+        if not user_id:
+            return jsonify({"ok": False, "error": "Нужен userId"}), 400
+        balance = users_repo.get_points(user_id)
+        return jsonify({"ok": True, "points": balance}), 200
 
     @app.route("/api/bookings/<int:booking_id>", methods=["DELETE"])
     def delete_booking(booking_id: int):
         try:
+            booking = bookings_repo.get(booking_id)
+            if booking and booking.user_id:
+                # Возвращаем списанные баллы и отзываем начисленные
+                users_repo.add_points(booking.user_id, booking.points_used - booking.points_earned)
+
+            ok = bookings_repo.delete(booking_id)
+            if ok:
+                return jsonify({"ok": True}), 200
+            return jsonify({"ok": False, "error": "Запись не найдена"}), 404
+        except Exception as err:
+            return jsonify({"ok": False, "error": f"Ошибка отмены записи: {err}"}), 500
             ok = bookings_repo.delete(booking_id)
             if ok:
                 return jsonify({"ok": True}), 200

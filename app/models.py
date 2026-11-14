@@ -23,6 +23,17 @@ class User:
     full_name: str
     phone: str
     login: str
+    points: int = 0
+
+    @staticmethod
+    def from_row(row: dict) -> "User":
+        return User(
+            id=row["id"],
+            full_name=row["full_name"],
+            phone=row["phone"],
+            login=row["login"],
+            points=int(row.get("points") or 0),
+        )
 
     def to_dict(self) -> dict:
         is_admin = (self.login == "admin")
@@ -31,6 +42,7 @@ class User:
             "name": self.full_name,
             "phone": self.phone,
             "login": self.login,
+            "points": self.points,
             "isAdmin": is_admin,
             "role": "admin" if is_admin else "user",
         }
@@ -85,6 +97,8 @@ class Booking:
     master_name: str
     booking_date: str
     booking_time: str
+    points_earned: int = 0
+    points_used: int = 0
 
     @staticmethod
     def from_row(row: dict) -> "Booking":
@@ -99,6 +113,8 @@ class Booking:
             master_name=row["master_name"],
             booking_date=str(row["booking_date"]),
             booking_time=str(row["booking_time"]),
+            points_earned=int(row.get("points_earned") or 0),
+            points_used=int(row.get("points_used") or 0),
         )
 
     def to_dict(self) -> dict:
@@ -113,4 +129,6 @@ class Booking:
             "master": self.master_name,
             "date": self.booking_date,
             "time": self.booking_time,
+            "pointsEarned": self.points_earned,
+            "pointsUsed": self.points_used,
         }
