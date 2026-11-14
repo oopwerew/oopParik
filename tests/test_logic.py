@@ -95,6 +95,20 @@ class ServiceTests(unittest.TestCase):
         self.assertFalse(self.repo.delete(s.id))
         self.assertEqual(len(self.repo.search()), 4)
 
+    def test_recalculate_prices(self):
+        # Исходные цены в FakeDatabase: 1900 (id 2), 2300 (id 10), 2800 (id 1), 4800 (id 4)
+        # Все услуги дешевле 2500 ₽ поднимаем до 2600 ₽ через SQL
+        count, sql = self.repo.recalculate_prices(max_threshold=2500, new_price=2600)
+        self.assertEqual(count, 2)
+        self.assertIn("UPDATE services SET price = 2600.00 WHERE price < 2500.00;", sql)
+        updated_prices = [s.price for s in self.repo.search(sort="asc")]
+        self.assertEqual(updated_prices, [2600.0, 2600.0, 2800.0, 4800.0])
+
+        # С диапазоном (от 2500 до 3000 сделать 3500)
+        count2, sql2 = self.repo.recalculate_prices(min_threshold=2500, max_threshold=3000, new_price=3500)
+        self.assertEqual(count2, 3) # две по 2600 и одна 2800
+        self.assertIn("WHERE price >= 2500.00 AND price < 3000.00;", sql2)
+
 
 class BookingTests(unittest.TestCase):
     def setUp(self):

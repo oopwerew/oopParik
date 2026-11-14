@@ -207,6 +207,50 @@ def create_app(config: Config = None) -> Flask:
         except Exception as err:
             return jsonify({"ok": False, "error": f"Ошибка удаления: {err}"}), 500
 
+    @app.route("/api/services/recalculate", methods=["POST"])
+    def recalculate_services():
+        """Массовый перерасчет цен через прямой SQL-запрос (только для admin)."""
+        if not is_admin_request():
+            return jsonify({
+                "ok": False,
+                "error": "Доступ запрещен. Только администратор (логин: admin) может пересчитывать цены."
+            }), 403
+
+        data = request.get_json(silent=True) or {}
+        try:
+            max_threshold = float(data.get("maxThreshold", data.get("threshold", 0)))
+            new_price = float(data.get("newPrice", 0))
+        except (ValueError, TypeError):
+            return jsonify({"ok": False, "error": "Укажите корректные числовые значения порога и новой цены"}), 400
+
+        min_threshold_val = data.get("minThreshold")
+        min_threshold = None
+        if min_threshold_val is not None and str(min_threshold_val).strip() != "":
+            try:
+                min_threshold = float(min_threshold_val)
+            except (ValueError, TypeError):
+                min_threshold = None
+
+        if max_threshold <= 0 or new_price <= 0:
+            return jsonify({"ok": False, "error": "Порог цены и новая цена должны быть больше 0"}), 400
+
+        try:
+            count, executed_sql = services_repo.recalculate_prices(
+                max_threshold=max_threshold,
+                new_price=new_price,
+                min_threshold=min_threshold,
+            )
+            updated_services = services_repo.all()
+            return jsonify({
+                "ok": True,
+                "updatedCount": count,
+                "executedSql": executed_sql,
+                "services": [s.to_dict() for s in updated_services],
+                "message": f"Выполнен SQL-запрос. Обновлено услуг: {count}",
+            }), 200
+        except Exception as err:
+            return jsonify({"ok": False, "error": f"Ошибка перерасчета цен в БД: {err}"}), 500
+
     # =========================================================================
     # API: Записи клиентов
     # =========================================================================

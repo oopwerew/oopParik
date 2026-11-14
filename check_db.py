@@ -35,8 +35,10 @@ def main():
 
     print("\n✨ ВСЕГО УСЛУГ В КАТАЛОГЕ (services):")
     print("-" * 65)
-    count = db.fetch_all("SELECT COUNT(*) AS c FROM services")[0]["c"]
-    print(f"  В базе данных сейчас {count} активных услуг.")
+    services = db.fetch_all("SELECT id, title, price FROM services ORDER BY price ASC")
+    print(f"  В базе данных сейчас {len(services)} активных услуг:")
+    for s in services:
+        print(f"    • ID #{s['id']}: {s['title']} — {s['price']} ₽")
     print("=" * 65)
     print("🎉 Мост работает: любые действия на сайте сразу сохраняются сюда!")
     print("=" * 65)

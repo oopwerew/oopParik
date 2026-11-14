@@ -914,6 +914,7 @@
                 <div class="hero-buttons">
                     <a href="#catalogBlock" class="btn btn-primary">Выбрать услугу</a>
                     <button type="button" class="btn btn-soft" id="heroAddServiceBtn">+ Добавить услугу / товар</button>
+                    <button type="button" class="btn btn-soft" id="heroRecalcBtn" style="display: none; background: rgba(139, 92, 246, 0.15); color: #6d28d9; border: 1px solid rgba(139, 92, 246, 0.3);">⚡ Пересчет цен (SQL)</button>
                 </div>
             </div>
 
@@ -974,9 +975,14 @@
                     <button type="button" class="tab-btn" data-cat="Товары для дома">🧴 Косметика</button>
                 </div>
 
-                <button type="button" class="btn btn-primary" id="openAddModalBtn">
-                    ➕ Добавить карточку
-                </button>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button type="button" class="btn btn-soft" id="openRecalcModalBtn" style="display: none; background: linear-gradient(135deg, #7c3aed, #4f46e5); color: white; border: none;">
+                        ⚡ Пересчет цен (SQL)
+                    </button>
+                    <button type="button" class="btn btn-primary" id="openAddModalBtn">
+                        ➕ Добавить карточку
+                    </button>
+                </div>
             </div>
         </section>
 
@@ -1176,6 +1182,62 @@
         </div>
     </div>
 
+    <!-- ======================================================================
+         ОКНО 4: МАССОВЫЙ ПЕРЕРАСЧЕТ ЦЕН В MYSQL (ТОЛЬКО ДЛЯ АДМИНИСТРАТОРА)
+         ====================================================================== -->
+    <div class="modal-backdrop" id="recalcModal">
+        <div class="modal-window">
+            <button type="button" class="modal-close-btn" data-close="recalcModal">✕</button>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 1.5rem;">⚡</span>
+                <h3 style="margin: 0;">Перерасчет цен в MySQL</h3>
+            </div>
+            <p class="modal-sub">Массовое обновление стоимости услуг через прямой SQL-запрос <code>UPDATE services SET price = ...</code></p>
+
+            <form id="recalcForm">
+                <div style="background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 12px; padding: 12px; margin-bottom: 14px;">
+                    <span style="font-size: 0.85rem; font-weight: 600; color: #6d28d9;">💡 Быстрые пресеты условий:</span>
+                    <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;">
+                        <button type="button" class="btn btn-soft preset-btn" data-threshold="1500" data-new="2000" style="padding: 4px 10px; font-size: 0.8rem;">Меньше 1500 ₽ ➔ до 2000 ₽</button>
+                        <button type="button" class="btn btn-soft preset-btn" data-threshold="2000" data-new="2500" style="padding: 4px 10px; font-size: 0.8rem;">Меньше 2000 ₽ ➔ до 2500 ₽</button>
+                        <button type="button" class="btn btn-soft preset-btn" data-threshold="1000" data-new="1500" style="padding: 4px 10px; font-size: 0.8rem;">Меньше 1000 ₽ ➔ до 1500 ₽</button>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="field-group">
+                        <label>Все услуги с ценой меньше (₽):</label>
+                        <input type="number" id="recalcMaxThreshold" class="field-input" placeholder="1500" value="1500" min="1" step="50" required>
+                    </div>
+                    <div class="field-group">
+                        <label>Установить новую цену (₽):</label>
+                        <input type="number" id="recalcNewPrice" class="field-input" placeholder="2000" value="2000" min="1" step="50" required>
+                    </div>
+                </div>
+
+                <div class="field-group" style="margin-top: 4px;">
+                    <label style="font-size: 0.8rem; color: #666;">Минимальный порог (необязательно, от ₽):</label>
+                    <input type="number" id="recalcMinThreshold" class="field-input" placeholder="Например: 500 (или оставьте пустым)" min="0" step="50">
+                </div>
+
+                <!-- Блок предварительного просмотра SQL-запроса -->
+                <div class="field-group" style="margin-top: 10px;">
+                    <label style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>🐬 Генерируемый SQL-запрос в MySQL:</span>
+                        <button type="button" id="copySqlBtn" style="background: none; border: none; color: #6d28d9; cursor: pointer; font-size: 0.8rem; text-decoration: underline;">Скопировать SQL</button>
+                    </label>
+                    <pre id="sqlPreviewCode" style="background: #1e1e2e; color: #a6e3a1; padding: 12px; border-radius: 8px; font-family: monospace; font-size: 0.85rem; margin: 4px 0 0; white-space: pre-wrap; word-break: break-all;">UPDATE services SET price = 2000.00 WHERE price &lt; 1500.00;</pre>
+                </div>
+
+                <div id="recalcPreviewCount" style="font-size: 0.85rem; color: #555; margin-bottom: 12px; padding: 6px 10px; background: #f8f9fa; border-radius: 6px;">
+                    🔍 Под условие попадает услуг: <strong id="affectedServicesCount">0</strong>
+                </div>
+
+                <button type="submit" id="submitRecalcBtn" class="btn btn-primary" style="width: 100%; background: linear-gradient(135deg, #7c3aed, #4f46e5); border: none;">⚡ Выполнить перерасчет в MySQL</button>
+            </form>
+        </div>
+    </div>
+
     <!-- Уведомления -->
     <div class="toast-holder" id="toastHolder"></div>
 
@@ -1190,7 +1252,8 @@
                 REGISTER: '/auth/register',
                 LOGIN: '/auth/login',
                 BOOKINGS: '/bookings',
-                SERVICES: '/services'
+                SERVICES: '/services',
+                RECALCULATE: '/services/recalculate'
             }
         };
 
@@ -1388,8 +1451,12 @@
             const admin = isAdmin();
             const heroBtn = document.getElementById('heroAddServiceBtn');
             const openBtn = document.getElementById('openAddModalBtn');
+            const heroRecalc = document.getElementById('heroRecalcBtn');
+            const openRecalc = document.getElementById('openRecalcModalBtn');
             if (heroBtn) heroBtn.style.display = admin ? 'inline-flex' : 'none';
             if (openBtn) openBtn.style.display = admin ? 'inline-flex' : 'none';
+            if (heroRecalc) heroRecalc.style.display = admin ? 'inline-flex' : 'none';
+            if (openRecalc) openRecalc.style.display = admin ? 'inline-flex' : 'none';
         }
 
         /* ==========================================================================
@@ -1806,6 +1873,121 @@
                 e.target.reset();
                 showToast(`✨ Услуга успешно добавлена: «${newItem.title}»`);
             });
+
+            // -------------------------------------------------------------
+            // Массовый перерасчет цен в MySQL (Версия 4)
+            // -------------------------------------------------------------
+            const maxThresholdInput = document.getElementById('recalcMaxThreshold');
+            const newPriceInput = document.getElementById('recalcNewPrice');
+            const minThresholdInput = document.getElementById('recalcMinThreshold');
+            const sqlPreviewCode = document.getElementById('sqlPreviewCode');
+            const affectedCountEl = document.getElementById('affectedServicesCount');
+
+            function updateRecalcPreview() {
+                const maxT = Number(maxThresholdInput ? maxThresholdInput.value : 0) || 0;
+                const newP = Number(newPriceInput ? newPriceInput.value : 0) || 0;
+                const minT = minThresholdInput && minThresholdInput.value ? Number(minThresholdInput.value) : 0;
+
+                const matching = servicesList.filter(s => {
+                    if (minT > 0) return s.price >= minT && s.price < maxT;
+                    return s.price < maxT;
+                });
+                if (affectedCountEl) affectedCountEl.textContent = matching.length;
+
+                let sql = '';
+                if (minT > 0) {
+                    sql = `UPDATE services SET price = ${newP.toFixed(2)} WHERE price >= ${minT.toFixed(2)} AND price < ${maxT.toFixed(2)};`;
+                } else {
+                    sql = `UPDATE services SET price = ${newP.toFixed(2)} WHERE price < ${maxT.toFixed(2)};`;
+                }
+                if (sqlPreviewCode) sqlPreviewCode.textContent = sql;
+            }
+
+            const openRecalcHandler = () => {
+                if (!isAdmin()) {
+                    showToast('🔒 Перерасчет цен доступен только администратору (логин admin)');
+                    return;
+                }
+                updateRecalcPreview();
+                openModal('recalcModal');
+            };
+
+            const openRecalcBtn = document.getElementById('openRecalcModalBtn');
+            const heroRecalcBtn = document.getElementById('heroRecalcBtn');
+            if (openRecalcBtn) openRecalcBtn.addEventListener('click', openRecalcHandler);
+            if (heroRecalcBtn) heroRecalcBtn.addEventListener('click', openRecalcHandler);
+
+            [maxThresholdInput, newPriceInput, minThresholdInput].forEach(inp => {
+                if (inp) inp.addEventListener('input', updateRecalcPreview);
+            });
+
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const t = btn.getAttribute('data-threshold');
+                    const n = btn.getAttribute('data-new');
+                    if (t && maxThresholdInput) maxThresholdInput.value = t;
+                    if (n && newPriceInput) newPriceInput.value = n;
+                    if (minThresholdInput) minThresholdInput.value = '';
+                    updateRecalcPreview();
+                });
+            });
+
+            const copySqlBtn = document.getElementById('copySqlBtn');
+            if (copySqlBtn) {
+                copySqlBtn.addEventListener('click', () => {
+                    const text = sqlPreviewCode ? sqlPreviewCode.textContent : '';
+                    if (navigator.clipboard && text) {
+                        navigator.clipboard.writeText(text).then(() => {
+                            showToast('📋 SQL-запрос скопирован в буфер обмена!');
+                        });
+                    }
+                });
+            }
+
+            const recalcForm = document.getElementById('recalcForm');
+            if (recalcForm) {
+                recalcForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    if (!isAdmin()) {
+                        showToast('🔒 Ошибка: выполнять перерасчет может только администратор');
+                        return;
+                    }
+
+                    const submitBtn = document.getElementById('submitRecalcBtn');
+                    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Выполнение SQL в MySQL...'; }
+
+                    const maxThreshold = Number(maxThresholdInput.value);
+                    const newPrice = Number(newPriceInput.value);
+                    const minThreshold = minThresholdInput.value ? Number(minThresholdInput.value) : null;
+
+                    const res = await apiRequest('POST', API_CONFIG.ENDPOINTS.RECALCULATE, {
+                        maxThreshold,
+                        newPrice,
+                        minThreshold,
+                        adminLogin: activeUser ? activeUser.login : 'admin'
+                    });
+
+                    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = '⚡ Выполнить перерасчет в MySQL'; }
+
+                    if (!res.ok) {
+                        showToast('⚠️ ' + (res.error || 'Ошибка перерасчета цен'));
+                        return;
+                    }
+
+                    if (Array.isArray(res.services)) {
+                        servicesList = res.services.map(s => ({
+                            ...s,
+                            desc: s.desc || '',
+                            duration: s.duration || ''
+                        }));
+                        saveState();
+                        renderCatalog();
+                    }
+
+                    closeModal('recalcModal');
+                    showToast(`🎉 ${res.message || 'Цены успешно обновлены в MySQL!'}`);
+                });
+            }
 
             // Фильтры, поиск и ползунок цены
             document.getElementById('searchField').addEventListener('input', renderCatalog);
