@@ -1,0 +1,7 @@
+; Скопируйте этот файл в "config.ini" и впишите пароль от MySQL
+[mysql]
+host = localhost
+port = 3306
+user = root
+password = ВАШ_ПАРОЛЬ_ОТ_MYSQL
+database = lumiere_salon
