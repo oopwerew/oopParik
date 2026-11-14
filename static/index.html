@@ -1185,7 +1185,7 @@
            Пользователю это не видно. Все действия отправляются сюда через fetch().
            ========================================================================== */
         const API_CONFIG = {
-            BASE_URL: '/api', // сайт отдаётся тем же сервером (npm start → http://localhost:3000)
+            BASE_URL: window.location.origin.startsWith('http') ? '/api' : 'http://127.0.0.1:5001/api',
             ENDPOINTS: {
                 REGISTER: '/auth/register',
                 LOGIN: '/auth/login',
@@ -1194,12 +1194,13 @@
             }
         };
 
-        // Запрос к серверу. Всегда возвращает { ok, ... }; при недоступном сервере — ok:false, offline:true
+        // Запрос к серверу. Всегда возвращает { ok, ... }; при ошибке — понятное сообщение
         async function apiRequest(method, endpoint, payload) {
             try {
                 const headers = { 'Content-Type': 'application/json' };
                 if (activeUser && activeUser.login) {
                     headers['X-User-Login'] = activeUser.login;
+                    headers['X-User-Id'] = String(activeUser.id || '');
                 }
                 const options = {
                     method,
@@ -1207,11 +1208,22 @@
                     credentials: 'same-origin'
                 };
                 if (payload !== undefined) options.body = JSON.stringify(payload);
-                const response = await fetch(API_CONFIG.BASE_URL + endpoint, options);
-                return await response.json();
+                const url = endpoint.startsWith('http') ? endpoint : (API_CONFIG.BASE_URL + endpoint);
+                const response = await fetch(url, options);
+
+                const contentType = response.headers.get('content-type') || '';
+                if (contentType.includes('application/json')) {
+                    return await response.json();
+                }
+                const text = await response.text();
+                return { ok: response.ok, error: text || `Ошибка сервера (${response.status})` };
             } catch (err) {
-                console.error('[API] Сервер недоступен:', endpoint, err);
-                return { ok: false, offline: true, error: 'Сервер недоступен.' };
+                console.error('[API] Ошибка соединения:', endpoint, err);
+                return {
+                    ok: false,
+                    offline: true,
+                    error: 'Сервер недоступен. Проверьте, что в терминале запущен: venv/bin/python app.py на http://localhost:5001'
+                };
             }
         }
 
@@ -1749,9 +1761,12 @@
             document.getElementById('addServiceForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 if (!isAdmin()) {
-                    showToast('🔒 Ошибка: добавлять услуги может только администратор (логин: admin)');
+                    showToast('🔒 Ошибка: добавлять услуги может только администратор (войдите под логином admin)');
                     return;
                 }
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+                if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Добавление...'; }
+
                 const res = await apiRequest('POST', API_CONFIG.ENDPOINTS.SERVICES, {
                     title: document.getElementById('newTitle').value.trim(),
                     category: document.getElementById('newCat').value,
@@ -1759,16 +1774,23 @@
                     duration: document.getElementById('newDuration').value.trim(),
                     image: document.getElementById('newImg').value.trim(),
                     emoji: '💇‍♀️',
-                    desc: document.getElementById('newDesc').value.trim()
+                    desc: document.getElementById('newDesc').value.trim(),
+                    adminLogin: activeUser ? activeUser.login : 'admin'
                 });
-                if (!res.ok) { showToast('⚠️ ' + res.error); return; }
+
+                if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Добавить на сайт'; }
+
+                if (!res.ok) {
+                    showToast('⚠️ ' + (res.error || 'Не удалось добавить услугу'));
+                    return;
+                }
                 const newItem = { ...res.service, desc: res.service.desc || '', duration: res.service.duration || '' };
                 servicesList.unshift(newItem);
                 saveState();
                 renderCatalog();
                 closeModal('addServiceModal');
                 e.target.reset();
-                showToast(`✨ Добавлено: «${newItem.title}»`);
+                showToast(`✨ Услуга успешно добавлена: «${newItem.title}»`);
             });
 
             // Фильтры, поиск и ползунок цены

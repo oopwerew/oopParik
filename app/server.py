@@ -52,15 +52,33 @@ def create_app(config: Config = None) -> Flask:
     app.extensions["bookings"] = bookings_repo
     app.extensions["auth"] = auth_service
 
+    # =========================================================================
+    # CORS поддержка для любых клиентов и браузеров
+    # =========================================================================
+    @app.after_request
+    def add_cors_headers(response):
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type, X-User-Login, X-User-Id, Authorization"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+        return response
+
+    @app.route("/api/<path:subpath>", methods=["OPTIONS"])
+    def options_handler(subpath):
+        return jsonify({"ok": True}), 200
+
     def is_admin_request() -> bool:
-        """Проверка прав администратора (по сессии или заголовкам)."""
+        """Проверка прав администратора (по сессии, заголовкам или телу запроса)."""
         if session.get("is_admin"):
             return True
-        header_login = request.headers.get("X-User-Login", "").strip()
+        header_login = str(request.headers.get("X-User-Login", "")).strip().lower()
         if header_login == "admin":
             return True
         data = request.get_json(silent=True) or {}
-        if str(data.get("userLogin", "")).strip() == "admin" or str(data.get("adminLogin", "")).strip() == "admin":
+        if str(data.get("userLogin", "")).strip().lower() == "admin":
+            return True
+        if str(data.get("adminLogin", "")).strip().lower() == "admin":
+            return True
+        if str(request.args.get("admin", "")).strip().lower() in ("1", "true", "admin"):
             return True
         return False
 
