@@ -4,6 +4,12 @@
 --  для карточек на сайте. Запускать ОДИН файл целиком (молния ⚡).
 --  Внимание: скрипт пересоздаёт базу — все старые данные удаляются.
 -- ============================================================
+SET NAMES utf8mb4;
+SET CHARACTER SET utf8mb4;
+SET character_set_connection=utf8mb4;
+SET character_set_results=utf8mb4;
+SET character_set_client=utf8mb4;
+
 DROP DATABASE IF EXISTS lumiere_salon;
 CREATE DATABASE lumiere_salon
     CHARACTER SET utf8mb4
@@ -97,10 +103,10 @@ INSERT INTO services (id, category_id, title, price, duration, description, emoj
 (10, 5, 'Увлажняющая маска с маслом арганы',          2300.00, '250 мл',  'Профессиональная салонная маска для домашнего ухода',           '🧴');
 
 -- Администратор (логин: admin, пароль: admin; при первом входе хэшируется bcrypt)
--- и тестовый клиент (alina_style / 123456)
-INSERT INTO users (full_name, phone, login, password_hash) VALUES
-('Администратор', '+7 (000) 000-00-00', 'admin', 'admin'),
-('Алина Ветрова', '+7 (999) 123-45-67', 'alina_style', '123456');
+-- и тестовый клиент (alina_style / 123456, 250 приветственных баллов)
+INSERT INTO users (id, full_name, phone, login, password_hash, points) VALUES
+(1, 'Администратор', '+7 (000) 000-00-00', 'admin', 'admin', 0),
+(2, 'Алина Ветрова', '+7 (999) 123-45-67', 'alina_style', '123456', 250);
 
 -- Проверка
 SELECT s.id, c.name AS category, s.title, s.price, s.emoji

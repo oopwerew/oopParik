@@ -59,8 +59,17 @@ class Database:
                     password=self._config.password,
                     database=self._config.database,
                     charset="utf8mb4",
+                    collation="utf8mb4_unicode_ci",
+                    use_unicode=True,
                     autocommit=True,
                 )
+                try:
+                    cur = self._mysql_conn.cursor()
+                    cur.execute("SET NAMES utf8mb4;")
+                    cur.execute("SET CHARACTER SET utf8mb4;")
+                    cur.close()
+                except Exception:
+                    pass
                 self._is_sqlite = False
                 print(f"✅ Успешное подключение к MySQL: {self._config.database}@{self._config.host}:{self._config.port}")
                 return
