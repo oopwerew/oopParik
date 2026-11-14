@@ -1,0 +1,4 @@
+"""Пакет приложения LUMIÈRE."""
+from .server import create_app
+
+__all__ = ["create_app"]

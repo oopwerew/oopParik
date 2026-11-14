@@ -24,6 +24,14 @@ class User:
     phone: str
     login: str
 
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "name": self.full_name,
+            "phone": self.phone,
+            "login": self.login,
+        }
+
 
 @dataclass
 class Service:
@@ -48,6 +56,18 @@ class Service:
             emoji=row["emoji"] or "✨",
             image_url=row["image_url"] or "",
         )
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "title": self.title,
+            "category": self.category,
+            "price": self.price,
+            "duration": self.duration,
+            "desc": self.description,
+            "emoji": self.emoji,
+            "image": self.image_url,
+        }
 
 
 @dataclass
@@ -75,5 +95,19 @@ class Booking:
             client_phone=row["client_phone"],
             master_name=row["master_name"],
             booking_date=str(row["booking_date"]),
-            booking_time=row["booking_time"],
+            booking_time=str(row["booking_time"]),
         )
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "userId": self.user_id,
+            "serviceId": self.service_id,
+            "serviceTitle": self.service_title,
+            "price": self.price,
+            "clientName": self.client_name,
+            "clientPhone": self.client_phone,
+            "master": self.master_name,
+            "date": self.booking_date,
+            "time": self.booking_time,
+        }

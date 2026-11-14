@@ -1,0 +1,1675 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LUMIÈRE — Парикмахерская и студия стиля</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Мягкая воздушная палитра (Нежная пудра - по умолчанию) */
+            --bg-main: #FDFBF9;
+            --bg-secondary: #F5EFEA;
+            --bg-card: rgba(255, 255, 255, 0.9);
+            --text-main: #2B2523;
+            --text-muted: #7D726D;
+            --accent: #D98A6C;
+            --accent-hover: #C27355;
+            --accent-glow: rgba(217, 138, 108, 0.45);
+            --accent-soft: #FBECE6;
+            --border-color: rgba(217, 138, 108, 0.22);
+            --shadow-soft: 0 12px 32px -6px rgba(43, 37, 35, 0.06);
+            --shadow-hover: 0 22px 44px -10px rgba(217, 138, 108, 0.28);
+            --radius-xl: 32px;
+            --radius-lg: 24px;
+            --radius-md: 18px;
+            --radius-pill: 999px;
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        /* Переключаемые цветовые стили */
+        [data-theme="sage"] {
+            --bg-main: #F7FAF8;
+            --bg-secondary: #E9F2EE;
+            --bg-card: rgba(255, 255, 255, 0.9);
+            --text-main: #212B27;
+            --text-muted: #65766E;
+            --accent: #689684;
+            --accent-hover: #527D6C;
+            --accent-glow: rgba(104, 150, 132, 0.45);
+            --accent-soft: #E3F0EB;
+            --border-color: rgba(104, 150, 132, 0.25);
+            --shadow-hover: 0 22px 44px -10px rgba(104, 150, 132, 0.28);
+        }
+
+        [data-theme="lavender"] {
+            --bg-main: #FAF8FC;
+            --bg-secondary: #F0ECF8;
+            --bg-card: rgba(255, 255, 255, 0.9);
+            --text-main: #262230;
+            --text-muted: #6F687E;
+            --accent: #9A84B8;
+            --accent-hover: #8169A1;
+            --accent-glow: rgba(154, 132, 184, 0.45);
+            --accent-soft: #EFEAF7;
+            --border-color: rgba(154, 132, 184, 0.25);
+            --shadow-hover: 0 22px 44px -10px rgba(154, 132, 184, 0.28);
+        }
+
+        [data-theme="peach"] {
+            --bg-main: #FFFDFB;
+            --bg-secondary: #FCEFE9;
+            --bg-card: rgba(255, 255, 255, 0.92);
+            --text-main: #2E2421;
+            --text-muted: #826E69;
+            --accent: #E8998D;
+            --accent-hover: #D47E71;
+            --accent-glow: rgba(232, 153, 141, 0.5);
+            --accent-soft: #FDECE9;
+            --border-color: rgba(232, 153, 141, 0.25);
+            --shadow-hover: 0 22px 44px -10px rgba(232, 153, 141, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            line-height: 1.6;
+            transition: background-color 0.4s ease, color 0.4s ease;
+            overflow-x: hidden;
+        }
+
+        /* Декоративный воздушный фон */
+        .bg-decor {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .bg-circle {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: 0.5;
+            transition: background 0.5s ease;
+        }
+
+        .circle-1 {
+            width: 500px;
+            height: 500px;
+            background: var(--accent-soft);
+            top: -120px;
+            right: -100px;
+        }
+
+        .circle-2 {
+            width: 550px;
+            height: 550px;
+            background: var(--bg-secondary);
+            bottom: -180px;
+            left: -120px;
+        }
+
+        /* Шапка сайта */
+        header {
+            position: sticky;
+            top: 16px;
+            z-index: 100;
+            max-width: 1260px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .navbar {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-pill);
+            padding: 12px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-soft);
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .brand {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: var(--text-main);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        .brand-dot {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 14px var(--accent);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        /* Выбор цвета / темы */
+        .style-picker {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-secondary);
+            padding: 6px 14px;
+            border-radius: var(--radius-pill);
+            border: 1px solid var(--border-color);
+        }
+
+        .style-picker span {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .color-dot {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .color-dot:hover {
+            transform: scale(1.22);
+            box-shadow: 0 0 12px var(--accent-glow);
+        }
+
+        .color-dot.active {
+            border-color: var(--text-main);
+            transform: scale(1.15);
+        }
+
+        .custom-color-input {
+            width: 24px;
+            height: 24px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            background: transparent;
+            padding: 0;
+        }
+
+        /* Интерактивные кнопки с красивой подсветкой */
+        .btn {
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 11px 22px;
+            border-radius: var(--radius-pill);
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            user-select: none;
+            position: relative;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #ffffff;
+            box-shadow: 0 6px 20px var(--accent-glow);
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 12px 28px var(--accent-glow), 0 0 18px var(--accent);
+        }
+
+        .btn-primary:active {
+            transform: translateY(1px) scale(0.97);
+        }
+
+        .btn-soft {
+            background: var(--accent-soft);
+            color: var(--text-main);
+            border: 1.5px solid var(--border-color);
+        }
+
+        .btn-soft:hover {
+            background: var(--accent);
+            color: #ffffff;
+            border-color: var(--accent);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 24px var(--accent-glow);
+        }
+
+        .btn-soft:active {
+            transform: translateY(1px) scale(0.97);
+        }
+
+        .btn-delete {
+            background: rgba(224, 90, 90, 0.12);
+            color: #d14949;
+            padding: 9px 14px;
+            font-size: 0.85rem;
+        }
+
+        .btn-delete:hover {
+            background: #d14949;
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(209, 73, 73, 0.35);
+        }
+
+        /* Главный контейнер */
+        main {
+            max-width: 1260px;
+            margin: 32px auto 80px;
+            padding: 0 20px;
+        }
+
+        /* Главный баннер (Hero) */
+        .hero-banner {
+            background: linear-gradient(135deg, var(--bg-card) 0%, var(--accent-soft) 100%);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            padding: 52px 48px;
+            display: grid;
+            grid-template-columns: 1.25fr 0.75fr;
+            gap: 36px;
+            align-items: center;
+            box-shadow: var(--shadow-soft);
+            margin-bottom: 40px;
+        }
+
+        .hero-tag {
+            display: inline-block;
+            background: var(--bg-card);
+            color: var(--accent);
+            padding: 7px 18px;
+            border-radius: var(--radius-pill);
+            font-size: 0.84rem;
+            font-weight: 600;
+            margin-bottom: 18px;
+            border: 1px solid var(--border-color);
+        }
+
+        .hero-banner h1 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 3.3rem;
+            line-height: 1.12;
+            margin-bottom: 18px;
+        }
+
+        .hero-banner p {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+            margin-bottom: 28px;
+            max-width: 540px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .hero-features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .feature-box {
+            background: var(--bg-card);
+            padding: 22px;
+            border-radius: var(--radius-lg);
+            border: 1.5px solid var(--border-color);
+            text-align: center;
+            transition: var(--transition);
+            cursor: default;
+        }
+
+        .feature-box:hover {
+            transform: translateY(-6px);
+            border-color: var(--accent);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        .feature-title {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+
+        .feature-sub {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }
+
+        /* Панель фильтрации и поиска */
+        .filter-panel {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            padding: 26px 30px;
+            margin-bottom: 36px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .filter-row-top {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-bottom: 22px;
+        }
+
+        .search-wrapper {
+            flex: 1;
+            min-width: 260px;
+            position: relative;
+        }
+
+        .search-wrapper input {
+            width: 100%;
+            padding: 14px 22px 14px 46px;
+            border-radius: var(--radius-pill);
+            border: 1.5px solid var(--border-color);
+            background: var(--bg-main);
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 0.95rem;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .search-wrapper input:focus,
+        .search-wrapper input:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px var(--accent-soft), 0 6px 20px var(--accent-glow);
+        }
+
+        .search-wrapper .icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+
+        .filter-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .price-slider-pill {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--bg-main);
+            padding: 10px 18px;
+            border-radius: var(--radius-pill);
+            border: 1.5px solid var(--border-color);
+            font-size: 0.88rem;
+            transition: var(--transition);
+        }
+
+        .price-slider-pill:hover {
+            border-color: var(--accent);
+            box-shadow: 0 4px 14px var(--accent-glow);
+        }
+
+        .price-slider-pill input[type="range"] {
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+
+        .select-pill {
+            padding: 12px 20px;
+            border-radius: var(--radius-pill);
+            border: 1.5px solid var(--border-color);
+            background: var(--bg-main);
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .select-pill:hover, .select-pill:focus {
+            border-color: var(--accent);
+            box-shadow: 0 4px 14px var(--accent-glow);
+        }
+
+        /* Категории (Кнопки фильтрации) */
+        .categories-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding-top: 18px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .category-tabs {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            border-radius: var(--radius-pill);
+            border: 1.5px solid transparent;
+            background: var(--bg-secondary);
+            color: var(--text-muted);
+            font-family: inherit;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .tab-btn:hover {
+            color: var(--text-main);
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px var(--accent-glow);
+        }
+
+        .tab-btn.active {
+            background: var(--accent);
+            color: #ffffff;
+            box-shadow: 0 8px 20px var(--accent-glow);
+        }
+
+        /* Сетка карточек услуг и товаров */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 26px;
+        }
+
+        .service-card {
+            background: var(--bg-card);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+            box-shadow: var(--shadow-soft);
+            position: relative;
+        }
+
+        .service-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--accent);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .card-photo {
+            height: 195px;
+            background: linear-gradient(135deg, var(--accent-soft), var(--bg-secondary));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .service-card:hover .card-photo img {
+            transform: scale(1.06);
+        }
+
+        .photo-emoji {
+            font-size: 3rem;
+            margin-bottom: 6px;
+            transition: transform 0.35s ease;
+        }
+
+        .service-card:hover .photo-emoji {
+            transform: scale(1.18) rotate(-5deg);
+        }
+
+        .photo-caption {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.75);
+            padding: 4px 12px;
+            border-radius: var(--radius-pill);
+        }
+
+        .card-top-badges {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            right: 14px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+
+        .pill-badge {
+            padding: 5px 13px;
+            border-radius: var(--radius-pill);
+            font-size: 0.75rem;
+            font-weight: 700;
+            background: var(--bg-card);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+
+        .pill-time {
+            background: var(--accent);
+            color: #ffffff;
+            border: none;
+        }
+
+        .card-content {
+            padding: 24px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-cat-label {
+            font-size: 0.76rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--accent);
+            margin-bottom: 6px;
+        }
+
+        .card-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.55rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 10px;
+        }
+
+        .card-desc {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            flex: 1;
+        }
+
+        .card-bottom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 16px;
+            border-top: 1px dashed var(--border-color);
+            gap: 10px;
+        }
+
+        .card-price {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .card-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Модальные окна (Вход, Онлайн-запись, Личный кабинет, Добавление услуги) */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(32, 26, 24, 0.45);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        .modal-backdrop.open {
+            display: flex;
+            animation: fadeIn 0.25s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-window {
+            background: var(--bg-main);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            width: 100%;
+            max-width: 480px;
+            padding: 34px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: popUp 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+        }
+
+        @keyframes popUp {
+            from { transform: translateY(20px) scale(0.95); }
+            to { transform: translateY(0) scale(1); }
+        }
+
+        .modal-close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-main);
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .modal-close-btn:hover {
+            background: var(--accent);
+            color: #ffffff;
+            transform: rotate(90deg);
+        }
+
+        .modal-window h3 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2rem;
+            margin-bottom: 6px;
+        }
+
+        .modal-sub {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 22px;
+        }
+
+        .mode-switcher {
+            display: flex;
+            background: var(--bg-secondary);
+            padding: 5px;
+            border-radius: var(--radius-pill);
+            margin-bottom: 22px;
+        }
+
+        .mode-switcher button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: var(--radius-pill);
+            background: transparent;
+            font-family: inherit;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .mode-switcher button.active {
+            background: var(--bg-main);
+            color: var(--text-main);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        .field-group {
+            margin-bottom: 16px;
+        }
+
+        .field-group label {
+            display: block;
+            font-size: 0.84rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .field-input {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            border: 1.5px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 0.94rem;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .field-input:focus {
+            border-color: var(--accent);
+            background: var(--bg-main);
+            box-shadow: 0 0 0 4px var(--accent-soft);
+        }
+
+        /* Список записей клиента в Личном кабинете */
+        .my-bookings-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .booking-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Уведомления */
+        .toast-holder {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast-msg {
+            background: var(--bg-card);
+            backdrop-filter: blur(14px);
+            border-left: 4px solid var(--accent);
+            border-top: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px 22px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-hover);
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        footer {
+            text-align: center;
+            padding: 36px 20px;
+            color: var(--text-muted);
+            font-size: 0.88rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        @media (max-width: 900px) {
+            .hero-banner {
+                grid-template-columns: 1fr;
+                padding: 34px 24px;
+            }
+            .hero-banner h1 {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-decor">
+        <div class="bg-circle circle-1"></div>
+        <div class="bg-circle circle-2"></div>
+    </div>
+
+    <!-- Шапка сайта -->
+    <header>
+        <nav class="navbar">
+            <a href="#" class="brand">
+                <span class="brand-dot"></span>
+                LUMIÈRE
+            </a>
+
+            <div class="nav-right">
+                <!-- Переключатель цветовой гаммы (ТЗ: Задать стиль / цвет) -->
+                <div class="style-picker">
+                    <span>Цвет:</span>
+                    <button type="button" class="color-dot active" style="background: #D98A6C;" data-theme-val="default" title="Нежная пудра"></button>
+                    <button type="button" class="color-dot" style="background: #689684;" data-theme-val="sage" title="Мятный шалфей"></button>
+                    <button type="button" class="color-dot" style="background: #9A84B8;" data-theme-val="lavender" title="Лаванда"></button>
+                    <button type="button" class="color-dot" style="background: #E8998D;" data-theme-val="peach" title="Персиковый рассвет"></button>
+                    <input type="color" id="customColorInput" class="custom-color-input" value="#D98A6C" title="Выбрать любой оттенок">
+                </div>
+
+                <!-- Кнопка Мои записи -->
+                <button type="button" class="btn btn-soft" id="openMyBookingsBtn">
+                    📅 Мои записи (<span id="myBookingsCount">0</span>)
+                </button>
+
+                <!-- Кнопка Входа / Личного кабинета -->
+                <div id="userHeaderBox">
+                    <button type="button" class="btn btn-primary" id="openAuthBtn">
+                        ✨ Войти в кабинет
+                    </button>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Приветственный блок салона -->
+        <section class="hero-banner">
+            <div>
+                <span class="hero-tag">🌸 Парикмахерская и студия ухода</span>
+                <h1>Нежная забота о ваших волосах и безупречный стиль</h1>
+                <p>Женские и мужские стрижки, бережное окрашивание в сложных техниках, восстанавливающие SPA-программы и профессиональная уходовая косметика.</p>
+                <div class="hero-buttons">
+                    <a href="#catalogBlock" class="btn btn-primary">Выбрать услугу</a>
+                    <button type="button" class="btn btn-soft" id="heroAddServiceBtn">+ Добавить услугу / товар</button>
+                </div>
+            </div>
+
+            <div class="hero-features">
+                <div class="feature-box">
+                    <div class="feature-icon">💇‍♀️</div>
+                    <div class="feature-title">Топ-стилисты</div>
+                    <div class="feature-sub">Опыт работы от 5 лет</div>
+                </div>
+                <div class="feature-box">
+                    <div class="feature-icon">🌿</div>
+                    <div class="feature-title">Эко-составы</div>
+                    <div class="feature-sub">Безаммиачные красители</div>
+                </div>
+                <div class="feature-box">
+                    <div class="feature-icon">☕</div>
+                    <div class="feature-title">Уютная атмосфера</div>
+                    <div class="feature-sub">Ароматный кофе и релакс</div>
+                </div>
+                <div class="feature-box">
+                    <div class="feature-icon">✨</div>
+                    <div class="feature-title">Гарантия результата</div>
+                    <div class="feature-sub">Бесплатная консультация</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Панель поиска и фильтрации услуг -->
+        <section id="catalogBlock" class="filter-panel">
+            <div class="filter-row-top">
+                <div class="search-wrapper">
+                    <span class="icon">🔍</span>
+                    <input type="text" id="searchField" placeholder="Найти услугу или уход (например: стрижка, окрашивание, кератин, челка)...">
+                </div>
+
+                <div class="filter-controls">
+                    <div class="price-slider-pill">
+                        <span>Цена до: <strong id="priceLabel">12 000 ₽</strong></span>
+                        <input type="range" id="priceRange" min="500" max="12000" step="200" value="12000">
+                    </div>
+
+                    <select id="sortOrder" class="select-pill">
+                        <option value="default">По популярности</option>
+                        <option value="asc">Сначала недорогие</option>
+                        <option value="desc">Сначала премиум</option>
+                        <option value="name">По алфавиту (А–Я)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="categories-row">
+                <div class="category-tabs" id="categoryTabs">
+                    <button type="button" class="tab-btn active" data-cat="all">Все услуги и товары</button>
+                    <button type="button" class="tab-btn" data-cat="Стрижки">✂️ Стрижки</button>
+                    <button type="button" class="tab-btn" data-cat="Окрашивание">🎨 Окрашивание</button>
+                    <button type="button" class="tab-btn" data-cat="Укладки и уход">🌿 Укладки и SPA-уход</button>
+                    <button type="button" class="tab-btn" data-cat="Доп. услуги">🌸 Доп. услуги</button>
+                    <button type="button" class="tab-btn" data-cat="Товары для дома">🧴 Косметика</button>
+                </div>
+
+                <button type="button" class="btn btn-primary" id="openAddModalBtn">
+                    ➕ Добавить карточку
+                </button>
+            </div>
+        </section>
+
+        <!-- Каталог услуг и товаров -->
+        <section class="services-grid" id="servicesGrid"></section>
+    </main>
+
+    <footer>
+        <p>© 2026 Парикмахерская «LUMIÈRE». Ежедневно с 10:00 до 21:00 • Онлайн-запись 24/7</p>
+    </footer>
+
+    <!-- ======================================================================
+         ОКНО 1: ВХОД И РЕГИСТРАЦИЯ КЛИЕНТА
+         ====================================================================== -->
+    <div class="modal-backdrop" id="authModal">
+        <div class="modal-window">
+            <button type="button" class="modal-close-btn" data-close="authModal">✕</button>
+            <h3>Личный кабинет</h3>
+            <p class="modal-sub">Войдите или создайте профиль для быстрой записи к мастерам</p>
+
+            <div class="mode-switcher">
+                <button type="button" class="active" id="tabLoginBtn">Вход</button>
+                <button type="button" id="tabRegBtn">Регистрация</button>
+            </div>
+
+            <!-- Форма входа -->
+            <form id="loginForm">
+                <div class="field-group">
+                    <label>Логин или Email</label>
+                    <input type="text" id="loginInput" class="field-input" placeholder="Введите ваш логин или email" required>
+                </div>
+                <div class="field-group">
+                    <label>Пароль</label>
+                    <input type="password" id="loginPass" class="field-input" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">Войти</button>
+            </form>
+
+            <!-- Форма регистрации -->
+            <form id="regForm" style="display: none;">
+                <div class="field-group">
+                    <label>Ваше имя</label>
+                    <input type="text" id="regName" class="field-input" placeholder="Например: Алина" required>
+                </div>
+                <div class="field-group">
+                    <label>Телефон для связи</label>
+                    <input type="tel" id="regPhone" class="field-input" placeholder="+7 (999) 000-00-00" required>
+                </div>
+                <div class="field-group">
+                    <label>Логин (или Email)</label>
+                    <input type="text" id="regLogin" class="field-input" placeholder="alina_style" required>
+                </div>
+                <div class="field-group">
+                    <label>Придумайте пароль</label>
+                    <input type="password" id="regPass" class="field-input" placeholder="Минимум 4 символа" minlength="4" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">Создать аккаунт</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ======================================================================
+         ОКНО 2: ОФОРМЛЕНИЕ ЗАПИСИ НА УСЛУГУ / ЗАКАЗ ТОВАРА
+         ====================================================================== -->
+    <div class="modal-backdrop" id="bookingModal">
+        <div class="modal-window">
+            <button type="button" class="modal-close-btn" data-close="bookingModal">✕</button>
+            <h3>Онлайн-запись</h3>
+            <p class="modal-sub" id="bookingServiceName">Выбранная услуга</p>
+
+            <form id="bookingForm">
+                <input type="hidden" id="bookingServiceId">
+                <div class="field-group">
+                    <label>Ваше имя</label>
+                    <input type="text" id="bookingClientName" class="field-input" placeholder="Как к вам обращаться?" required>
+                </div>
+                <div class="field-group">
+                    <label>Контактный телефон</label>
+                    <input type="tel" id="bookingClientPhone" class="field-input" placeholder="+7 (999) 123-45-67" required>
+                </div>
+                <div class="field-group">
+                    <label>Выберите мастера</label>
+                    <select id="bookingMaster" class="field-input">
+                        <option value="Анна Соколова (Топ-стилист)">Анна Соколова (Топ-стилист)</option>
+                        <option value="Мария Кравцова (Колорист)">Мария Кравцова (Колорист)</option>
+                        <option value="Елена Ветрова (Мастер укладок и SPA)">Елена Ветрова (Мастер укладок и SPA)</option>
+                        <option value="Артур Миронов (Барбер / Мужской мастер)">Артур Миронов (Барбер / Мужской мастер)</option>
+                    </select>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="field-group">
+                        <label>Дата визита</label>
+                        <input type="date" id="bookingDate" class="field-input" required>
+                    </div>
+                    <div class="field-group">
+                        <label>Удобное время</label>
+                        <select id="bookingTime" class="field-input">
+                            <option value="10:00">10:00</option>
+                            <option value="12:00">12:00</option>
+                            <option value="14:30">14:30</option>
+                            <option value="16:30">16:30</option>
+                            <option value="18:30">18:30</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">Подтвердить запись</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ======================================================================
+         ОКНО 3: МОИ ЗАПИСИ (ПРОСМОТР И ОТМЕНА ЗАПИСЕЙ КЛИЕНТОМ)
+         ====================================================================== -->
+    <div class="modal-backdrop" id="myBookingsModal">
+        <div class="modal-window">
+            <button type="button" class="modal-close-btn" data-close="myBookingsModal">✕</button>
+            <h3>Мои записи в салон</h3>
+            <p class="modal-sub">Здесь отображаются выбранные вами услуги и время визита</p>
+            <div class="my-bookings-list" id="myBookingsList"></div>
+        </div>
+    </div>
+
+    <!-- ======================================================================
+         ОКНО 4: ДОБАВИТЬ НОВУЮ УСЛУГУ ИЛИ ТОВАР (ТЗ: Добавление)
+         ====================================================================== -->
+    <div class="modal-backdrop" id="addServiceModal">
+        <div class="modal-window">
+            <button type="button" class="modal-close-btn" data-close="addServiceModal">✕</button>
+            <h3>Добавить позицию</h3>
+            <p class="modal-sub">Заполните данные для новой карточки в каталоге парикмахерской</p>
+
+            <form id="addServiceForm">
+                <div class="field-group">
+                    <label>Название услуги или товара</label>
+                    <input type="text" id="newTitle" class="field-input" placeholder="Например: Стрижка горячими ножницами" required>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="field-group">
+                        <label>Категория</label>
+                        <select id="newCat" class="field-input">
+                            <option value="Стрижки">Стрижки</option>
+                            <option value="Окрашивание">Окрашивание</option>
+                            <option value="Укладки и уход">Укладки и уход</option>
+                            <option value="Доп. услуги">Доп. услуги</option>
+                            <option value="Товары для дома">Товары для дома</option>
+                        </select>
+                    </div>
+                    <div class="field-group">
+                        <label>Цена (₽)</label>
+                        <input type="number" id="newPrice" class="field-input" placeholder="2500" min="100" required>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="field-group">
+                        <label>Длительность / Объём</label>
+                        <input type="text" id="newDuration" class="field-input" placeholder="60 мин" required>
+                    </div>
+                    <div class="field-group">
+                        <label>Путь к фото (по желанию)</label>
+                        <input type="text" id="newImg" class="field-input" placeholder="img/photo.jpg">
+                    </div>
+                </div>
+                <div class="field-group">
+                    <label>Описание</label>
+                    <textarea id="newDesc" class="field-input" rows="3" placeholder="Что входит в услугу..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">Добавить на сайт</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Уведомления -->
+    <div class="toast-holder" id="toastHolder"></div>
+
+    <script>
+        /* ==========================================================================
+           КОНФИГУРАЦИЯ ПОДКЛЮЧЕНИЯ К НАШЕЙ СЕРВЕРНОЙ БД (BACKEND API)
+           Пользователю это не видно. Все действия отправляются сюда через fetch().
+           ========================================================================== */
+        const API_CONFIG = {
+            BASE_URL: '/api', // сайт отдаётся тем же сервером (npm start → http://localhost:3000)
+            ENDPOINTS: {
+                REGISTER: '/auth/register',
+                LOGIN: '/auth/login',
+                BOOKINGS: '/bookings',
+                SERVICES: '/services'
+            }
+        };
+
+        // Запрос к серверу. Всегда возвращает { ok, ... }; при недоступном сервере — ok:false, offline:true
+        async function apiRequest(method, endpoint, payload) {
+            try {
+                const options = { method, headers: { 'Content-Type': 'application/json' } };
+                if (payload !== undefined) options.body = JSON.stringify(payload);
+                const response = await fetch(API_CONFIG.BASE_URL + endpoint, options);
+                return await response.json();
+            } catch (err) {
+                console.error('[API] Сервер недоступен:', endpoint, err);
+                return { ok: false, offline: true, error: 'Сервер недоступен. Запустите бэкенд (npm start).' };
+            }
+        }
+
+        /* ==========================================================================
+           КАТАЛОГ УСЛУГ ПАРИКМАХЕРСКОЙ (Стрижки, окрашивание, доп. услуги, товары)
+           ========================================================================== */
+        const DEFAULT_SERVICES = [
+            {
+                id: 1,
+                title: "Женская модельная стрижка + укладка",
+                category: "Стрижки",
+                price: 2800,
+                duration: "60 мин",
+                emoji: "✂️",
+                image: "",
+                desc: "Мытьё головы с расслабляющим массажем, подбор формы стрижки и лёгкая укладка феном."
+            },
+            {
+                id: 2,
+                title: "Мужская стрижка (Классика / Fade)",
+                category: "Стрижки",
+                price: 1900,
+                duration: "45 мин",
+                emoji: "💈",
+                image: "",
+                desc: "Точная работа ножницами и машинкой, окантовка, мытьё головы и укладка матовой пастой."
+            },
+            {
+                id: 3,
+                title: "Стрижка чёлки и коррекция кончиков",
+                category: "Доп. услуги",
+                price: 900,
+                duration: "25 мин",
+                emoji: "🌸",
+                image: "",
+                desc: "Быстрое обновление формы чёлки (шторка, прямая, рваная) и ровный срез секущихся кончиков."
+            },
+            {
+                id: 4,
+                title: "Окрашивание в один тон (Корни + длина)",
+                category: "Окрашивание",
+                price: 4800,
+                duration: "120 мин",
+                emoji: "🎨",
+                image: "",
+                desc: "Бережное безаммиачное окрашивание с глубоким блеском и защитой структуры волос."
+            },
+            {
+                id: 5,
+                title: "Сложное окрашивание AirTouch / Шатуш / Балаяж",
+                category: "Окрашивание",
+                price: 8900,
+                duration: "180 мин",
+                emoji: "✨",
+                image: "",
+                desc: "Создание плавного рельефного блонда или мягких бликов с тонированием и уходом."
+            },
+            {
+                id: 6,
+                title: "Кератиновое восстановление и ботокс волос",
+                category: "Укладки и уход",
+                price: 5200,
+                duration: "110 мин",
+                emoji: "🌿",
+                image: "",
+                desc: "Глубокое питание, разглаживание пушистости и зеркальный глянец на срок до 3 месяцев."
+            },
+            {
+                id: 7,
+                title: "Вечерняя укладка / Голливудские локоны",
+                category: "Укладки и уход",
+                price: 2600,
+                duration: "60 мин",
+                emoji: "💫",
+                image: "",
+                desc: "Стойкие воздушные локоны или элегантный низкий пучок для особого случая."
+            },
+            {
+                id: 8,
+                title: "Пилинг кожи головы + ампульный SPA-массаж",
+                category: "Доп. услуги",
+                price: 2100,
+                duration: "40 мин",
+                emoji: "🧖‍♀️",
+                image: "",
+                desc: "Детокс-очищение кожи головы, стимуляция роста волос и нанесение витаминной сыворотки."
+            },
+            {
+                id: 9,
+                title: "Оформление и окрашивание бровей",
+                category: "Доп. услуги",
+                price: 1400,
+                duration: "35 мин",
+                emoji: "👁️",
+                image: "",
+                desc: "Подбор архитектуры бровей, деликатная коррекция и стойкое окрашивание краской или хной."
+            },
+            {
+                id: 10,
+                title: "Увлажняющая маска с маслом арганы и шёлком",
+                category: "Товары для дома",
+                price: 2300,
+                duration: "250 мл",
+                emoji: "🧴",
+                image: "",
+                desc: "Профессиональная салонная маска для домашнего ухода за сухими и окрашенными волосами."
+            }
+        ];
+
+        let servicesList = JSON.parse(localStorage.getItem('lumiere_client_services')) || DEFAULT_SERVICES;
+        let clientBookings = JSON.parse(localStorage.getItem('lumiere_client_bookings')) || [];
+        let activeUser = JSON.parse(localStorage.getItem('lumiere_active_user')) || null;
+        let activeCategory = 'all';
+
+        // Загрузка каталога из БД (если сервер недоступен — остаётся локальная копия)
+        async function loadServicesFromDB() {
+            const res = await apiRequest('GET', API_CONFIG.ENDPOINTS.SERVICES);
+            if (res.ok) {
+                servicesList = res.services.map(s => ({ ...s, desc: s.desc || '', duration: s.duration || '' }));
+                saveState();
+                renderCatalog();
+            } else {
+                showToast('⚠️ ' + res.error);
+            }
+        }
+
+        // Загрузка записей вошедшего клиента из БД
+        async function loadBookingsFromDB() {
+            if (!activeUser || !activeUser.id) return;
+            const res = await apiRequest('GET', API_CONFIG.ENDPOINTS.BOOKINGS + '?userId=' + activeUser.id);
+            if (res.ok) { clientBookings = res.bookings; saveState(); }
+        }
+
+        function saveState() {
+            localStorage.setItem('lumiere_client_services', JSON.stringify(servicesList));
+            localStorage.setItem('lumiere_client_bookings', JSON.stringify(clientBookings));
+            localStorage.setItem('lumiere_active_user', JSON.stringify(activeUser));
+            document.getElementById('myBookingsCount').textContent = clientBookings.length;
+        }
+
+        /* ==========================================================================
+           ОТРИСОВКА КАТАЛОГА, ПОИСК И ФИЛЬТРАЦИЯ
+           ========================================================================== */
+        function renderCatalog() {
+            const grid = document.getElementById('servicesGrid');
+            const query = document.getElementById('searchField').value.trim().toLowerCase();
+            const maxPrice = Number(document.getElementById('priceRange').value);
+            const sortVal = document.getElementById('sortOrder').value;
+
+            let filtered = servicesList.filter(item => {
+                const matchText = item.title.toLowerCase().includes(query) ||
+                                  item.desc.toLowerCase().includes(query) ||
+                                  item.category.toLowerCase().includes(query);
+                const matchCat = activeCategory === 'all' || item.category === activeCategory;
+                const matchPrice = item.price <= maxPrice;
+                return matchText && matchCat && matchPrice;
+            });
+
+            if (sortVal === 'asc') filtered.sort((a, b) => a.price - b.price);
+            if (sortVal === 'desc') filtered.sort((a, b) => b.price - a.price);
+            if (sortVal === 'name') filtered.sort((a, b) => a.title.localeCompare(b.title, 'ru'));
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 50px; background: var(--bg-card); border-radius: var(--radius-xl); border: 1.5px dashed var(--border-color);">
+                        <div style="font-size: 2.5rem; margin-bottom: 8px;">🍃</div>
+                        <h3>Ничего не найдено</h3>
+                        <p style="color: var(--text-muted);">Попробуйте увеличить максимальную цену или выбрать другую категорию.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(item => `
+                <article class="service-card">
+                    <div class="card-photo">
+                        ${item.image ? `<img src="${item.image}" alt="${item.title}">` : `
+                            <div class="photo-emoji">${item.emoji || '✨'}</div>
+                            <span class="photo-caption">Место для фото</span>
+                        `}
+                        <div class="card-top-badges">
+                            <span class="pill-badge">${item.category}</span>
+                            <span class="pill-badge pill-time">${item.duration}</span>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-cat-label">${item.category}</div>
+                        <h3 class="card-title">${item.title}</h3>
+                        <p class="card-desc">${item.desc}</p>
+                        <div class="card-bottom">
+                            <div class="card-price">${item.price.toLocaleString('ru-RU')} ₽</div>
+                            <div class="card-btns">
+                                <button type="button" class="btn btn-primary" data-book-id="${item.id}" style="padding: 9px 18px; font-size: 0.85rem;">
+                                    Записаться
+                                </button>
+                                <button type="button" class="btn btn-delete" data-del-id="${item.id}" title="Удалить карточку">
+                                    🗑
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        /* ==========================================================================
+           УПРАВЛЕНИЕ МОДАЛЬНЫМИ ОКНАМИ
+           ========================================================================== */
+        function openModal(id) {
+            document.getElementById(id).classList.add('open');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('open');
+        }
+
+        function showToast(text) {
+            const holder = document.getElementById('toastHolder');
+            const el = document.createElement('div');
+            el.className = 'toast-msg';
+            el.textContent = text;
+            holder.appendChild(el);
+            setTimeout(() => el.remove(), 3200);
+        }
+
+        function renderHeaderUser() {
+            const box = document.getElementById('userHeaderBox');
+            if (activeUser) {
+                box.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 10px; background: var(--accent-soft); padding: 6px 14px; border-radius: var(--radius-pill); border: 1px solid var(--border-color);">
+                        <span style="font-weight: 700; font-size: 0.88rem;">👤 ${activeUser.name}</span>
+                        <button type="button" class="btn btn-soft" id="logoutBtn" style="padding: 5px 12px; font-size: 0.78rem;">Выйти</button>
+                    </div>
+                `;
+                document.getElementById('logoutBtn').addEventListener('click', () => {
+                    activeUser = null;
+                    clientBookings = [];
+                    saveState();
+                    renderHeaderUser();
+                    showToast('Вы вышли из личного кабинета');
+                });
+            } else {
+                box.innerHTML = `
+                    <button type="button" class="btn btn-primary" id="openAuthBtn">
+                        ✨ Войти в кабинет
+                    </button>
+                `;
+                document.getElementById('openAuthBtn').addEventListener('click', () => openModal('authModal'));
+            }
+        }
+
+        function renderMyBookingsModal() {
+            const container = document.getElementById('myBookingsList');
+            if (clientBookings.length === 0) {
+                container.innerHTML = `<p style="color: var(--text-muted); text-align: center; padding: 24px 0;">У вас пока нет активных записей. Выберите любую услугу в каталоге!</p>`;
+                return;
+            }
+            container.innerHTML = clientBookings.map(b => `
+                <div class="booking-item">
+                    <div>
+                        <div style="font-weight: 700; font-size: 0.95rem;">${b.serviceTitle}</div>
+                        <div style="font-size: 0.82rem; color: var(--text-muted);">Мастер: ${b.master} • ${b.date} в ${b.time}</div>
+                        <div style="font-size: 0.85rem; font-weight: 700; color: var(--accent); margin-top: 2px;">${b.price.toLocaleString('ru-RU')} ₽</div>
+                    </div>
+                    <button type="button" class="btn btn-delete" data-cancel-booking="${b.id}">Отменить</button>
+                </div>
+            `).join('');
+        }
+
+        /* ==========================================================================
+           ПРИВЯЗКА ВСЕХ КНОПОК И ИНТЕРАКТИВНЫХ ЭЛЕМЕНТОВ
+           ========================================================================== */
+        document.addEventListener('DOMContentLoaded', () => {
+            // Установка сегодняшней даты по умолчанию в окне записи
+            document.getElementById('bookingDate').valueAsDate = new Date();
+
+            saveState();
+            renderHeaderUser();
+            renderCatalog();
+            loadServicesFromDB();
+            loadBookingsFromDB();
+
+            // Закрытие модальных окон по крестику или клику на фон
+            document.querySelectorAll('[data-close]').forEach(btn => {
+                btn.addEventListener('click', () => closeModal(btn.getAttribute('data-close')));
+            });
+            document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+                backdrop.addEventListener('click', (e) => {
+                    if (e.target === backdrop) backdrop.classList.remove('open');
+                });
+            });
+
+            // Открытие окон из шапки и баннера
+            document.getElementById('openMyBookingsBtn').addEventListener('click', () => {
+                renderMyBookingsModal();
+                openModal('myBookingsModal');
+            });
+            document.getElementById('openAddModalBtn').addEventListener('click', () => openModal('addServiceModal'));
+            document.getElementById('heroAddServiceBtn').addEventListener('click', () => openModal('addServiceModal'));
+
+            // Переключение вкладок Вход / Регистрация
+            const tabLoginBtn = document.getElementById('tabLoginBtn');
+            const tabRegBtn = document.getElementById('tabRegBtn');
+            const loginForm = document.getElementById('loginForm');
+            const regForm = document.getElementById('regForm');
+
+            tabLoginBtn.addEventListener('click', () => {
+                tabLoginBtn.classList.add('active');
+                tabRegBtn.classList.remove('active');
+                loginForm.style.display = 'block';
+                regForm.style.display = 'none';
+            });
+
+            tabRegBtn.addEventListener('click', () => {
+                tabRegBtn.classList.add('active');
+                tabLoginBtn.classList.remove('active');
+                regForm.style.display = 'block';
+                loginForm.style.display = 'none';
+            });
+
+            // Обработка Регистрации (сохраняется в БД через apiRequest)
+            regForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const newUser = {
+                    name: document.getElementById('regName').value.trim(),
+                    phone: document.getElementById('regPhone').value.trim(),
+                    login: document.getElementById('regLogin').value.trim(),
+                    password: document.getElementById('regPass').value
+                };
+
+                const res = await apiRequest('POST', API_CONFIG.ENDPOINTS.REGISTER, newUser);
+                if (!res.ok) { showToast('⚠️ ' + res.error); return; }
+                activeUser = res.user; // пользователь уже сохранён в таблице users
+                clientBookings = [];
+                saveState();
+                renderHeaderUser();
+                closeModal('authModal');
+                regForm.reset();
+                showToast(`🌸 Добро пожаловать в LUMIÈRE, ${newUser.name}!`);
+            });
+
+            // Обработка Входа
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const loginVal = document.getElementById('loginInput').value.trim();
+                const passVal = document.getElementById('loginPass').value;
+
+                const res = await apiRequest('POST', API_CONFIG.ENDPOINTS.LOGIN, { login: loginVal, password: passVal });
+                if (!res.ok) { showToast('⚠️ ' + res.error); return; }
+                activeUser = res.user;
+                await loadBookingsFromDB();
+                saveState();
+                renderHeaderUser();
+                closeModal('authModal');
+                loginForm.reset();
+                showToast(`✨ Рады видеть вас, ${activeUser.name}!`);
+            });
+
+            // Делегирование кликов по карточкам услуг (Записаться / Удалить)
+            document.getElementById('servicesGrid').addEventListener('click', (e) => {
+                const bookBtn = e.target.closest('[data-book-id]');
+                const delBtn = e.target.closest('[data-del-id]');
+
+                if (bookBtn) {
+                    const serviceId = Number(bookBtn.getAttribute('data-book-id'));
+                    const service = servicesList.find(s => s.id === serviceId);
+                    if (!service) return;
+
+                    document.getElementById('bookingServiceId').value = service.id;
+                    document.getElementById('bookingServiceName').textContent = `${service.title} — ${service.price.toLocaleString('ru-RU')} ₽`;
+                    if (activeUser) {
+                        document.getElementById('bookingClientName').value = activeUser.name || '';
+                        document.getElementById('bookingClientPhone').value = activeUser.phone || '';
+                    }
+                    openModal('bookingModal');
+                }
+
+                if (delBtn) {
+                    const serviceId = Number(delBtn.getAttribute('data-del-id'));
+                    const target = servicesList.find(s => s.id === serviceId);
+                    apiRequest('DELETE', API_CONFIG.ENDPOINTS.SERVICES + '/' + serviceId).then(res => {
+                        if (!res.ok) { showToast('⚠️ ' + (res.error || 'Не удалось удалить')); return; }
+                        servicesList = servicesList.filter(s => s.id !== serviceId);
+                        saveState();
+                        renderCatalog();
+                        // записи на удалённую услугу удалены в БД каскадно
+                        loadBookingsFromDB();
+                        if (target) showToast(`Удалено из каталога: «${target.title}»`);
+                    });
+                }
+            });
+
+            // Подтверждение записи на услугу (сохраняется в БД через apiRequest)
+            document.getElementById('bookingForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const serviceId = Number(document.getElementById('bookingServiceId').value);
+                const service = servicesList.find(s => s.id === serviceId);
+                if (!service) return;
+
+                const res = await apiRequest('POST', API_CONFIG.ENDPOINTS.BOOKINGS, {
+                    userId: activeUser ? activeUser.id : null,
+                    serviceId: service.id,
+                    clientName: document.getElementById('bookingClientName').value.trim(),
+                    clientPhone: document.getElementById('bookingClientPhone').value.trim(),
+                    master: document.getElementById('bookingMaster').value,
+                    date: document.getElementById('bookingDate').value,
+                    time: document.getElementById('bookingTime').value
+                });
+                if (!res.ok) { showToast('⚠️ ' + res.error); return; }
+                const bookingRecord = res.booking;
+                clientBookings.unshift(bookingRecord);
+                saveState();
+                closeModal('bookingModal');
+                showToast(`💖 Вы записаны: «${service.title}» (${bookingRecord.date} в ${bookingRecord.time})`);
+            });
+
+            // Отмена записи в окне "Мои записи"
+            document.getElementById('myBookingsList').addEventListener('click', (e) => {
+                const cancelBtn = e.target.closest('[data-cancel-booking]');
+                if (!cancelBtn) return;
+                const bId = Number(cancelBtn.getAttribute('data-cancel-booking'));
+                apiRequest('DELETE', API_CONFIG.ENDPOINTS.BOOKINGS + '/' + bId).then(res => {
+                    if (!res.ok) { showToast('⚠️ ' + (res.error || 'Не удалось отменить')); return; }
+                    clientBookings = clientBookings.filter(b => b.id !== bId);
+                    saveState();
+                    renderMyBookingsModal();
+                    showToast('Запись отменена');
+                });
+            });
+
+            // Добавление новой услуги / товара
+            document.getElementById('addServiceForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const res = await apiRequest('POST', API_CONFIG.ENDPOINTS.SERVICES, {
+                    title: document.getElementById('newTitle').value.trim(),
+                    category: document.getElementById('newCat').value,
+                    price: Number(document.getElementById('newPrice').value),
+                    duration: document.getElementById('newDuration').value.trim(),
+                    image: document.getElementById('newImg').value.trim(),
+                    emoji: '💇‍♀️',
+                    desc: document.getElementById('newDesc').value.trim()
+                });
+                if (!res.ok) { showToast('⚠️ ' + res.error); return; }
+                const newItem = { ...res.service, desc: res.service.desc || '', duration: res.service.duration || '' };
+                servicesList.unshift(newItem);
+                saveState();
+                renderCatalog();
+                closeModal('addServiceModal');
+                e.target.reset();
+                showToast(`✨ Добавлено: «${newItem.title}»`);
+            });
+
+            // Фильтры, поиск и ползунок цены
+            document.getElementById('searchField').addEventListener('input', renderCatalog);
+            document.getElementById('sortOrder').addEventListener('change', renderCatalog);
+            document.getElementById('priceRange').addEventListener('input', (e) => {
+                document.getElementById('priceLabel').textContent = Number(e.target.value).toLocaleString('ru-RU') + ' ₽';
+                renderCatalog();
+            });
+
+            document.querySelectorAll('#categoryTabs .tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('#categoryTabs .tab-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    activeCategory = btn.getAttribute('data-cat');
+                    renderCatalog();
+                });
+            });
+
+            // Переключение цветовой палитры (ТЗ: Задать стиль / цвет)
+            document.querySelectorAll('.color-dot').forEach(dot => {
+                dot.addEventListener('click', () => {
+                    document.documentElement.removeAttribute('style');
+                    document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+                    dot.classList.add('active');
+                    const theme = dot.getAttribute('data-theme-val');
+                    if (theme === 'default') {
+                        document.documentElement.removeAttribute('data-theme');
+                    } else {
+                        document.documentElement.setAttribute('data-theme', theme);
+                    }
+                    showToast('🎨 Цветовое оформление обновлено');
+                });
+            });
+
+            document.getElementById('customColorInput').addEventListener('input', (e) => {
+                const hex = e.target.value;
+                document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+                document.documentElement.style.setProperty('--accent', hex);
+                document.documentElement.style.setProperty('--accent-hover', hex);
+                document.documentElement.style.setProperty('--accent-glow', hex + '66');
+                document.documentElement.style.setProperty('--accent-soft', hex + '22');
+            });
+        });
+    </script>
+</body>
+</html>
