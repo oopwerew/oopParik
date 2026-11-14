@@ -198,6 +198,36 @@ class WebAppTestCase(unittest.TestCase):
         self.assertEqual(data2["pointsEarned"], 38)
         self.assertEqual(data2["userPoints"], 38)
 
+    def test_recalculate_prices_admin_only(self):
+        """Проверка массового перерасчета цен (доступно только admin)."""
+        recalc_payload = {
+            "maxThreshold": 1500,
+            "newPrice": 1800,
+        }
+
+        # 1. Гость без авторизации -> 403 Forbidden
+        res_guest = self.client.post("/api/services/recalculate", json=recalc_payload)
+        self.assertEqual(res_guest.status_code, 403)
+
+        # 2. Обычный пользователь (не admin) -> 403 Forbidden
+        self.client.post("/api/auth/register", json={
+            "fullName": "Обычный Юзер",
+            "phone": "+79998887766",
+            "login": "normal_user",
+            "password": "password123"
+        })
+        res_user = self.client.post("/api/services/recalculate", json=recalc_payload)
+        self.assertEqual(res_user.status_code, 403)
+
+        # 3. Вход под admin -> 200 OK
+        self.client.post("/api/auth/login", json={"login": "admin", "password": "admin"})
+        res_admin = self.client.post("/api/services/recalculate", json=recalc_payload)
+        self.assertEqual(res_admin.status_code, 200)
+        data = res_admin.get_json()
+        self.assertTrue(data["ok"])
+        self.assertIn("UPDATE services SET price", data["executedSql"])
+        self.assertGreaterEqual(data["updatedCount"], 1)
+
 
 if __name__ == "__main__":
     unittest.main()

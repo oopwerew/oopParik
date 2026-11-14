@@ -126,6 +126,25 @@ class ServiceRepository:
         _, count = self.db.execute("DELETE FROM services WHERE id = %s", (service_id,))
         return count > 0
 
+    def recalculate_prices(self, max_threshold: float, new_price: float,
+                           min_threshold: Optional[float] = None) -> Tuple[int, str]:
+        """
+        Массовый перерасчет цен через прямой SQL-запрос UPDATE в MySQL / SQLite.
+        Пример: все услуги дешевле max_threshold (например, < 1500 ₽) сделать new_price (например, 2000 ₽).
+        Возвращает (количество_измененных_строк, выполненный_SQL_запрос).
+        """
+        if min_threshold is not None and min_threshold > 0:
+            sql = "UPDATE services SET price = %s WHERE price >= %s AND price < %s"
+            params = (new_price, min_threshold, max_threshold)
+            executed_sql = f"UPDATE services SET price = {new_price:.2f} WHERE price >= {min_threshold:.2f} AND price < {max_threshold:.2f};"
+        else:
+            sql = "UPDATE services SET price = %s WHERE price < %s"
+            params = (new_price, max_threshold)
+            executed_sql = f"UPDATE services SET price = {new_price:.2f} WHERE price < {max_threshold:.2f};"
+
+        _, count = self.db.execute(sql, params)
+        return count, executed_sql
+
 
 class BookingRepository:
     BASE = "SELECT * FROM bookings"
