@@ -5,7 +5,7 @@ LUMIÈRE — Flask сервер и REST API.
 """
 import os
 from pathlib import Path
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, session
 
 from .auth import AuthError, AuthService
 from .config import Config
@@ -52,6 +52,18 @@ def create_app(config: Config = None) -> Flask:
     app.extensions["bookings"] = bookings_repo
     app.extensions["auth"] = auth_service
 
+    def is_admin_request() -> bool:
+        """Проверка прав администратора (по сессии или заголовкам)."""
+        if session.get("is_admin"):
+            return True
+        header_login = request.headers.get("X-User-Login", "").strip()
+        if header_login == "admin":
+            return True
+        data = request.get_json(silent=True) or {}
+        if str(data.get("userLogin", "")).strip() == "admin" or str(data.get("adminLogin", "")).strip() == "admin":
+            return True
+        return False
+
     # =========================================================================
     # Главная страница (Веб-интерфейс парикмахерской)
     # =========================================================================
@@ -75,6 +87,9 @@ def create_app(config: Config = None) -> Flask:
 
         try:
             user = auth_service.register(name, phone, login, password)
+            session["user_id"] = user.id
+            session["login"] = user.login
+            session["is_admin"] = (user.login == "admin")
             return jsonify({"ok": True, "user": user.to_dict()}), 201
         except AuthError as err:
             status = 409 if "занят" in str(err) else 400
@@ -93,11 +108,19 @@ def create_app(config: Config = None) -> Flask:
 
         try:
             user = auth_service.login(login_val, password)
+            session["user_id"] = user.id
+            session["login"] = user.login
+            session["is_admin"] = (user.login == "admin")
             return jsonify({"ok": True, "user": user.to_dict()}), 200
         except AuthError as err:
             return jsonify({"ok": False, "error": str(err)}), 401
         except Exception as err:
             return jsonify({"ok": False, "error": f"Ошибка сервера: {err}"}), 500
+
+    @app.route("/api/auth/logout", methods=["POST"])
+    def logout():
+        session.clear()
+        return jsonify({"ok": True}), 200
 
     # =========================================================================
     # API: Каталог услуг
@@ -112,6 +135,12 @@ def create_app(config: Config = None) -> Flask:
 
     @app.route("/api/services", methods=["POST"])
     def add_service():
+        if not is_admin_request():
+            return jsonify({
+                "ok": False,
+                "error": "Доступ запрещен. Только администратор (логин: admin) может добавлять услуги."
+            }), 403
+
         data = request.get_json(silent=True) or {}
         title = str(data.get("title", "")).strip()
         category_name = str(data.get("category", "")).strip()
@@ -146,6 +175,12 @@ def create_app(config: Config = None) -> Flask:
 
     @app.route("/api/services/<int:service_id>", methods=["DELETE"])
     def delete_service(service_id: int):
+        if not is_admin_request():
+            return jsonify({
+                "ok": False,
+                "error": "Доступ запрещен. Только администратор (логин: admin) может удалять услуги."
+            }), 403
+
         try:
             ok = services_repo.delete(service_id)
             if ok:

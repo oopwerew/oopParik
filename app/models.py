@@ -25,11 +25,14 @@ class User:
     login: str
 
     def to_dict(self) -> dict:
+        is_admin = (self.login == "admin")
         return {
             "id": self.id,
             "name": self.full_name,
             "phone": self.phone,
             "login": self.login,
+            "isAdmin": is_admin,
+            "role": "admin" if is_admin else "user",
         }
 
 

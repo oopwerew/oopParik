@@ -134,9 +134,22 @@ class Database:
                 )
             cur.execute(
                 "INSERT INTO users (id, full_name, phone, login, password_hash) VALUES (?, ?, ?, ?, ?)",
-                (1, "Алина Ветрова", "+7 (999) 123-45-67", "alina_style", "123456")
+                (1, "Администратор", "+7 (000) 000-00-00", "admin", "admin")
+            )
+            cur.execute(
+                "INSERT INTO users (id, full_name, phone, login, password_hash) VALUES (?, ?, ?, ?, ?)",
+                (2, "Алина Ветрова", "+7 (999) 123-45-67", "alina_style", "123456")
             )
             self._sqlite_conn.commit()
+        else:
+            # Гарантируем наличие администратора admin/admin
+            cur.execute("SELECT id FROM users WHERE login = 'admin'")
+            if not cur.fetchone():
+                cur.execute(
+                    "INSERT INTO users (full_name, phone, login, password_hash) VALUES (?, ?, ?, ?)",
+                    ("Администратор", "+7 (000) 000-00-00", "admin", "admin")
+                )
+                self._sqlite_conn.commit()
         cur.close()
 
     @property
