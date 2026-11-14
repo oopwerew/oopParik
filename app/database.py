@@ -5,6 +5,7 @@
 """
 import os
 import sqlite3
+import threading
 from typing import Any, List, Optional, Tuple
 
 
@@ -37,6 +38,7 @@ DEFAULT_SERVICES = [
 class Database:
     def __init__(self, config):
         self._config = config
+        self._lock = threading.RLock()
         self._is_sqlite = False
         self._mysql_conn = None
         self._sqlite_conn = None
@@ -61,6 +63,7 @@ class Database:
                     charset="utf8mb4",
                     collation="utf8mb4_unicode_ci",
                     use_unicode=True,
+                    use_pure=True,
                     autocommit=True,
                 )
                 try:
@@ -183,56 +186,59 @@ class Database:
         return self._is_sqlite
 
     def _ensure(self):
-        if self._is_sqlite:
-            if self._sqlite_conn is None:
-                self._connect_sqlite()
-        else:
-            if self._mysql_conn is None or not self._mysql_conn.is_connected():
-                self._connect()
+        with self._lock:
+            if self._is_sqlite:
+                if self._sqlite_conn is None:
+                    self._connect_sqlite()
+            else:
+                if self._mysql_conn is None or not self._mysql_conn.is_connected():
+                    self._connect()
 
     def fetch_all(self, sql: str, params: Tuple[Any, ...] = ()) -> List[dict]:
-        """SELECT → список словарей."""
-        self._ensure()
-        if self._is_sqlite:
-            sql_conv = sql.replace("%s", "?")
-            cur = self._sqlite_conn.cursor()
-            try:
-                cur.execute(sql_conv, params)
-                return [dict(row) for row in cur.fetchall()]
-            finally:
-                cur.close()
-        else:
-            import mysql.connector
-            try:
-                cur = self._mysql_conn.cursor(dictionary=True)
+        """SELECT → список словарей (потокобезопасно)."""
+        with self._lock:
+            self._ensure()
+            if self._is_sqlite:
+                sql_conv = sql.replace("%s", "?")
+                cur = self._sqlite_conn.cursor()
                 try:
-                    cur.execute(sql, params)
-                    return cur.fetchall()
+                    cur.execute(sql_conv, params)
+                    return [dict(row) for row in cur.fetchall()]
                 finally:
                     cur.close()
-            except mysql.connector.Error as err:
-                raise DatabaseError(f"Ошибка запроса к MySQL:\n{err}") from err
+            else:
+                import mysql.connector
+                try:
+                    cur = self._mysql_conn.cursor(dictionary=True)
+                    try:
+                        cur.execute(sql, params)
+                        return cur.fetchall()
+                    finally:
+                        cur.close()
+                except mysql.connector.Error as err:
+                    raise DatabaseError(f"Ошибка запроса к MySQL:\n{err}") from err
 
     def execute(self, sql: str, params: Tuple[Any, ...] = ()) -> Tuple[int, int]:
-        """INSERT / UPDATE / DELETE → (последний id, число измененных строк)."""
-        self._ensure()
-        if self._is_sqlite:
-            sql_conv = sql.replace("%s", "?")
-            cur = self._sqlite_conn.cursor()
-            try:
-                cur.execute(sql_conv, params)
-                self._sqlite_conn.commit()
-                return cur.lastrowid or 0, cur.rowcount
-            finally:
-                cur.close()
-        else:
-            import mysql.connector
-            try:
-                cur = self._mysql_conn.cursor()
+        """INSERT / UPDATE / DELETE → (последний id, число измененных строк) (потокобезопасно)."""
+        with self._lock:
+            self._ensure()
+            if self._is_sqlite:
+                sql_conv = sql.replace("%s", "?")
+                cur = self._sqlite_conn.cursor()
                 try:
-                    cur.execute(sql, params)
+                    cur.execute(sql_conv, params)
+                    self._sqlite_conn.commit()
                     return cur.lastrowid or 0, cur.rowcount
                 finally:
                     cur.close()
-            except mysql.connector.Error as err:
-                raise DatabaseError(f"Ошибка записи в MySQL:\n{err}") from err
+            else:
+                import mysql.connector
+                try:
+                    cur = self._mysql_conn.cursor()
+                    try:
+                        cur.execute(sql, params)
+                        return cur.lastrowid or 0, cur.rowcount
+                    finally:
+                        cur.close()
+                except mysql.connector.Error as err:
+                    raise DatabaseError(f"Ошибка записи в MySQL:\n{err}") from err
