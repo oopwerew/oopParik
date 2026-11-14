@@ -1194,37 +1194,51 @@
             }
         };
 
-        // Запрос к серверу. Всегда возвращает { ok, ... }; при ошибке — понятное сообщение
+        // Запрос к серверу. Автоматически пробует текущий адрес и 127.0.0.1 (для обхода VPN/прокси)
         async function apiRequest(method, endpoint, payload) {
-            try {
-                const headers = { 'Content-Type': 'application/json' };
-                if (activeUser && activeUser.login) {
-                    headers['X-User-Login'] = activeUser.login;
-                    headers['X-User-Id'] = String(activeUser.id || '');
-                }
-                const options = {
-                    method,
-                    headers,
-                    credentials: 'same-origin'
-                };
-                if (payload !== undefined) options.body = JSON.stringify(payload);
-                const url = endpoint.startsWith('http') ? endpoint : (API_CONFIG.BASE_URL + endpoint);
-                const response = await fetch(url, options);
-
-                const contentType = response.headers.get('content-type') || '';
-                if (contentType.includes('application/json')) {
-                    return await response.json();
-                }
-                const text = await response.text();
-                return { ok: response.ok, error: text || `Ошибка сервера (${response.status})` };
-            } catch (err) {
-                console.error('[API] Ошибка соединения:', endpoint, err);
-                return {
-                    ok: false,
-                    offline: true,
-                    error: 'Сервер недоступен. Проверьте, что в терминале запущен: venv/bin/python app.py на http://localhost:5001'
-                };
+            const headers = { 'Content-Type': 'application/json' };
+            if (activeUser && activeUser.login) {
+                headers['X-User-Login'] = activeUser.login;
+                headers['X-User-Id'] = String(activeUser.id || '');
             }
+            const options = {
+                method,
+                headers
+            };
+            if (payload !== undefined) options.body = JSON.stringify(payload);
+
+            const candidates = [];
+            if (endpoint.startsWith('http')) {
+                candidates.push(endpoint);
+            } else {
+                candidates.push(API_CONFIG.BASE_URL + endpoint);
+                const loopback1 = 'http://127.0.0.1:5001/api' + endpoint;
+                const loopback2 = 'http://localhost:5001/api' + endpoint;
+                if (!candidates.includes(loopback1)) candidates.push(loopback1);
+                if (!candidates.includes(loopback2)) candidates.push(loopback2);
+            }
+
+            let lastErr = null;
+            for (const url of candidates) {
+                try {
+                    const response = await fetch(url, options);
+                    const contentType = response.headers.get('content-type') || '';
+                    if (contentType.includes('application/json')) {
+                        return await response.json();
+                    }
+                    const text = await response.text();
+                    return { ok: response.ok, error: text || `Ошибка сервера (${response.status})` };
+                } catch (err) {
+                    lastErr = err;
+                }
+            }
+
+            console.error('[API] Ошибка соединения:', endpoint, lastErr);
+            return {
+                ok: false,
+                offline: true,
+                error: 'Сервер недоступен. Откройте страницу http://localhost:5001 (и отключите VPN в браузере, если он включён).'
+            };
         }
 
         /* ==========================================================================
