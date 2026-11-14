@@ -7,7 +7,7 @@ password = ВАШ_ПАРОЛЬ_ОТ_MYSQL
 database = lumiere_salon
 
 [app]
-port = 5000
+port = 5001
 secret_key = lumiere_secret_key_123
 ; db_driver: "auto" (пробует подключиться к MySQL, при недоступности переключается на SQLite),
 ; либо принудительно "mysql" или "sqlite"

@@ -59,8 +59,17 @@ class Database:
                     password=self._config.password,
                     database=self._config.database,
                     charset="utf8mb4",
+                    collation="utf8mb4_unicode_ci",
+                    use_unicode=True,
                     autocommit=True,
                 )
+                try:
+                    cur = self._mysql_conn.cursor()
+                    cur.execute("SET NAMES utf8mb4;")
+                    cur.execute("SET CHARACTER SET utf8mb4;")
+                    cur.close()
+                except Exception:
+                    pass
                 self._is_sqlite = False
                 print(f"✅ Успешное подключение к MySQL: {self._config.database}@{self._config.host}:{self._config.port}")
                 return
@@ -87,6 +96,7 @@ class Database:
             phone TEXT NOT NULL,
             login TEXT NOT NULL UNIQUE,
             password_hash TEXT NOT NULL,
+            points INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
@@ -112,6 +122,8 @@ class Database:
             service_id INTEGER NOT NULL REFERENCES services(id) ON DELETE CASCADE,
             service_title TEXT NOT NULL,
             price REAL NOT NULL,
+            points_earned INTEGER DEFAULT 0,
+            points_used INTEGER DEFAULT 0,
             client_name TEXT NOT NULL,
             client_phone TEXT NOT NULL,
             master_name TEXT NOT NULL,
@@ -120,6 +132,20 @@ class Database:
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
         """)
+        self._sqlite_conn.commit()
+
+        # Автоматическая миграция (если база уже существовала)
+        cur.execute("PRAGMA table_info(users)")
+        user_cols = [col[1] for col in cur.fetchall()]
+        if "points" not in user_cols:
+            cur.execute("ALTER TABLE users ADD COLUMN points INTEGER DEFAULT 0")
+
+        cur.execute("PRAGMA table_info(bookings)")
+        booking_cols = [col[1] for col in cur.fetchall()]
+        if "points_earned" not in booking_cols:
+            cur.execute("ALTER TABLE bookings ADD COLUMN points_earned INTEGER DEFAULT 0")
+        if "points_used" not in booking_cols:
+            cur.execute("ALTER TABLE bookings ADD COLUMN points_used INTEGER DEFAULT 0")
         self._sqlite_conn.commit()
 
         # Заполняем начальными данными, если пусто
@@ -133,12 +159,12 @@ class Database:
                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?)", srv
                 )
             cur.execute(
-                "INSERT INTO users (id, full_name, phone, login, password_hash) VALUES (?, ?, ?, ?, ?)",
-                (1, "Администратор", "+7 (000) 000-00-00", "admin", "admin")
+                "INSERT INTO users (id, full_name, phone, login, password_hash, points) VALUES (?, ?, ?, ?, ?, ?)",
+                (1, "Администратор", "+7 (000) 000-00-00", "admin", "admin", 0)
             )
             cur.execute(
-                "INSERT INTO users (id, full_name, phone, login, password_hash) VALUES (?, ?, ?, ?, ?)",
-                (2, "Алина Ветрова", "+7 (999) 123-45-67", "alina_style", "123456")
+                "INSERT INTO users (id, full_name, phone, login, password_hash, points) VALUES (?, ?, ?, ?, ?, ?)",
+                (2, "Алина Ветрова", "+7 (999) 123-45-67", "alina_style", "123456", 250)
             )
             self._sqlite_conn.commit()
         else:
@@ -146,8 +172,8 @@ class Database:
             cur.execute("SELECT id FROM users WHERE login = 'admin'")
             if not cur.fetchone():
                 cur.execute(
-                    "INSERT INTO users (full_name, phone, login, password_hash) VALUES (?, ?, ?, ?)",
-                    ("Администратор", "+7 (000) 000-00-00", "admin", "admin")
+                    "INSERT INTO users (full_name, phone, login, password_hash, points) VALUES (?, ?, ?, ?, ?)",
+                    ("Администратор", "+7 (000) 000-00-00", "admin", "admin", 0)
                 )
                 self._sqlite_conn.commit()
         cur.close()

@@ -4,19 +4,26 @@
 --  для карточек на сайте. Запускать ОДИН файл целиком (молния ⚡).
 --  Внимание: скрипт пересоздаёт базу — все старые данные удаляются.
 -- ============================================================
+SET NAMES utf8mb4;
+SET CHARACTER SET utf8mb4;
+SET character_set_connection=utf8mb4;
+SET character_set_results=utf8mb4;
+SET character_set_client=utf8mb4;
+
 DROP DATABASE IF EXISTS lumiere_salon;
 CREATE DATABASE lumiere_salon
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_0900_ai_ci;
 USE lumiere_salon;
 
--- 1. Клиенты (регистрация и вход с сайта)
+-- 1. Клиенты (регистрация и вход с сайта, бонусные баллы)
 CREATE TABLE users (
     id            INT          NOT NULL AUTO_INCREMENT,
     full_name     VARCHAR(100) NOT NULL,
     phone         VARCHAR(30)  NOT NULL,
     login         VARCHAR(100) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
+    points        INT          NOT NULL DEFAULT 0,
     created_at    DATETIME     NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     UNIQUE INDEX login_UNIQUE (login ASC) VISIBLE
@@ -47,13 +54,15 @@ CREATE TABLE services (
         ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE = InnoDB;
 
--- 4. Онлайн-записи клиентов
+-- 4. Онлайн-записи клиентов (с фиксацией баллов)
 CREATE TABLE bookings (
     id            INT           NOT NULL AUTO_INCREMENT,
     user_id       INT           NULL DEFAULT NULL,
     service_id    INT           NOT NULL,
     service_title VARCHAR(150)  NOT NULL,
     price         DECIMAL(10,2) NOT NULL,
+    points_earned INT           NOT NULL DEFAULT 0,
+    points_used   INT           NOT NULL DEFAULT 0,
     client_name   VARCHAR(100)  NOT NULL,
     client_phone  VARCHAR(30)   NOT NULL,
     master_name   VARCHAR(100)  NOT NULL,
@@ -94,10 +103,10 @@ INSERT INTO services (id, category_id, title, price, duration, description, emoj
 (10, 5, 'Увлажняющая маска с маслом арганы',          2300.00, '250 мл',  'Профессиональная салонная маска для домашнего ухода',           '🧴');
 
 -- Администратор (логин: admin, пароль: admin; при первом входе хэшируется bcrypt)
--- и тестовый клиент (alina_style / 123456)
-INSERT INTO users (full_name, phone, login, password_hash) VALUES
-('Администратор', '+7 (000) 000-00-00', 'admin', 'admin'),
-('Алина Ветрова', '+7 (999) 123-45-67', 'alina_style', '123456');
+-- и тестовый клиент (alina_style / 123456, 250 приветственных баллов)
+INSERT INTO users (id, full_name, phone, login, password_hash, points) VALUES
+(1, 'Администратор', '+7 (000) 000-00-00', 'admin', 'admin', 0),
+(2, 'Алина Ветрова', '+7 (999) 123-45-67', 'alina_style', '123456', 250);
 
 -- Проверка
 SELECT s.id, c.name AS category, s.title, s.price, s.emoji

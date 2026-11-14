@@ -144,6 +144,60 @@ class WebAppTestCase(unittest.TestCase):
         res_cancel = self.client.delete(f"/api/bookings/{b_id}")
         self.assertEqual(res_cancel.status_code, 200)
 
+    def test_loyalty_points_lifecycle(self):
+        """Проверка начисления и списания бонусных баллов лояльности."""
+        # 1. Регистрация нового пользователя
+        reg_res = self.client.post("/api/auth/register", json={
+            "name": "Бонусный Клиент",
+            "phone": "+7 999 888-77-66",
+            "login": "bonus_client_test",
+            "password": "pass",
+        })
+        user_id = reg_res.get_json()["user"]["id"]
+        self.assertEqual(reg_res.get_json()["user"]["points"], 0)
+
+        # 2. Оформление записи на услугу 1 (2800 руб) -> 5% кешбэк = 140 баллов
+        book_res = self.client.post("/api/bookings", json={
+            "userId": user_id,
+            "serviceId": 1,
+            "clientName": "Бонусный Клиент",
+            "clientPhone": "+7 999 888-77-66",
+            "master": "Анна Соколова (Топ-стилист)",
+            "date": "2026-11-25",
+            "time": "12:00",
+        })
+        self.assertEqual(book_res.status_code, 201)
+        data = book_res.get_json()
+        self.assertEqual(data["pointsEarned"], 140)
+        self.assertEqual(data["userPoints"], 140)
+
+        # 3. Проверка баланса баллов через API
+        pts_res = self.client.get(f"/api/user/points?userId={user_id}")
+        self.assertEqual(pts_res.status_code, 200)
+        self.assertEqual(pts_res.get_json()["points"], 140)
+
+        # 4. Оформление второй записи со списанием баллов
+        # Услуга 3 (900 руб). Доступно 140 баллов.
+        # Итоговая цена = 900 - 140 = 760 руб.
+        # Начисление 5% от 760 = 38 баллов.
+        # Новый баланс = 140 - 140 + 38 = 38 баллов.
+        book_res2 = self.client.post("/api/bookings", json={
+            "userId": user_id,
+            "serviceId": 3,
+            "clientName": "Бонусный Клиент",
+            "clientPhone": "+7 999 888-77-66",
+            "master": "Мария Кравцова (Колорист)",
+            "date": "2026-11-26",
+            "time": "14:30",
+            "usePoints": True,
+        })
+        self.assertEqual(book_res2.status_code, 201)
+        data2 = book_res2.get_json()
+        self.assertEqual(data2["pointsUsed"], 140)
+        self.assertEqual(data2["booking"]["price"], 760.0)
+        self.assertEqual(data2["pointsEarned"], 38)
+        self.assertEqual(data2["userPoints"], 38)
+
 
 if __name__ == "__main__":
     unittest.main()

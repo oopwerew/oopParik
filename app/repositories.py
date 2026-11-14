@@ -18,15 +18,25 @@ class UserRepository:
         rows = self.db.fetch_all("SELECT * FROM users WHERE id = %s", (user_id,))
         return rows[0] if rows else None
 
-    def create(self, full_name: str, phone: str, login: str, password_hash: str) -> int:
+    def create(self, full_name: str, phone: str, login: str, password_hash: str, points: int = 0) -> int:
         new_id, _ = self.db.execute(
-            "INSERT INTO users (full_name, phone, login, password_hash) VALUES (%s, %s, %s, %s)",
-            (full_name, phone, login, password_hash),
+            "INSERT INTO users (full_name, phone, login, password_hash, points) VALUES (%s, %s, %s, %s, %s)",
+            (full_name, phone, login, password_hash, points),
         )
         return new_id
 
     def update_hash(self, user_id: int, password_hash: str) -> None:
         self.db.execute("UPDATE users SET password_hash = %s WHERE id = %s", (password_hash, user_id))
+
+    def get_points(self, user_id: int) -> int:
+        rows = self.db.fetch_all("SELECT points FROM users WHERE id = %s", (user_id,))
+        return int(rows[0]["points"]) if rows and rows[0].get("points") is not None else 0
+
+    def add_points(self, user_id: int, delta: int) -> int:
+        current = self.get_points(user_id)
+        new_balance = max(0, current + delta)
+        self.db.execute("UPDATE users SET points = %s WHERE id = %s", (new_balance, user_id))
+        return new_balance
 
 
 class CategoryRepository:
@@ -132,13 +142,15 @@ class BookingRepository:
         return Booking.from_row(rows[0]) if rows else None
 
     def create(self, user_id: Optional[int], service: Service, client_name: str,
-               client_phone: str, master: str, date: str, time: str) -> Booking:
+               client_phone: str, master: str, date: str, time: str,
+               price: Optional[float] = None, points_earned: int = 0, points_used: int = 0) -> Booking:
+        actual_price = price if price is not None else service.price
         new_id, _ = self.db.execute(
-            "INSERT INTO bookings (user_id, service_id, service_title, price, client_name, "
-            "client_phone, master_name, booking_date, booking_time) "
-            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
-            (user_id, service.id, service.title, service.price, client_name,
-             client_phone, master, date, time),
+            "INSERT INTO bookings (user_id, service_id, service_title, price, points_earned, points_used, "
+            "client_name, client_phone, master_name, booking_date, booking_time) "
+            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            (user_id, service.id, service.title, actual_price, points_earned, points_used,
+             client_name, client_phone, master, date, time),
         )
         return self.get(new_id)
 

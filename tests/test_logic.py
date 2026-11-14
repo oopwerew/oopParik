@@ -18,7 +18,8 @@ class FakeDatabase:
         self.conn.execute("PRAGMA foreign_keys = ON")
         self.conn.executescript("""
         CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, full_name TEXT NOT NULL,
-            phone TEXT NOT NULL, login TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, created_at TEXT);
+            phone TEXT NOT NULL, login TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL,
+            points INTEGER DEFAULT 0, created_at TEXT);
         CREATE TABLE categories (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE);
         CREATE TABLE services (id INTEGER PRIMARY KEY AUTOINCREMENT,
             category_id INTEGER NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
@@ -26,7 +27,9 @@ class FakeDatabase:
         CREATE TABLE bookings (id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
             service_id INTEGER NOT NULL REFERENCES services(id) ON DELETE CASCADE,
-            service_title TEXT NOT NULL, price REAL NOT NULL, client_name TEXT NOT NULL,
+            service_title TEXT NOT NULL, price REAL NOT NULL,
+            points_earned INTEGER DEFAULT 0, points_used INTEGER DEFAULT 0,
+            client_name TEXT NOT NULL,
             client_phone TEXT NOT NULL, master_name TEXT NOT NULL, booking_date TEXT NOT NULL,
             booking_time TEXT NOT NULL, created_at TEXT);
         INSERT INTO categories (id, name) VALUES (1,'Стрижки'),(2,'Окрашивание'),(5,'Товары для дома');

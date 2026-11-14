@@ -22,7 +22,7 @@ class Config:
         self.database = get_mysql("database", "lumiere_salon")
 
         get_app = lambda k, d: os.environ.get(k.upper(), parser.get("app", k, fallback=d))
-        self.app_port = int(get_app("port", "5000"))
+        self.app_port = int(get_app("port", "5001"))
         self.secret_key = get_app("secret_key", "lumiere_secret_key_123")
         # driver: "auto" (пробует MySQL, при ошибке SQLite), "mysql" или "sqlite"
         self.driver = get_app("db_driver", "auto").lower()
