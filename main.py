@@ -34,7 +34,6 @@ if __name__ == "__main__":
         print("✨ LUMIÈRE — Парикмахерская и студия стиля (Flask Web App)")
         print(f"🚀 Веб-приложение запущено и доступно по адресу:")
         print(f"   👉 http://localhost:{port}")
-        print(f"   👉 http://127.0.0.1:{port}")
         print("=" * 65)
 
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="localhost", port=port, debug=True)
